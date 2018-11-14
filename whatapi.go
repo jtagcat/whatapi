@@ -2,12 +2,15 @@
 package whatapi
 
 import (
+	"context"
 	"encoding/json"
 	"io/ioutil"
 	"net/http"
 	"net/http/cookiejar"
 	"net/url"
 	"strconv"
+
+	"golang.org/x/time/rate"
 )
 
 //NewWhatAPI creates a new client for the What.CD API using the provided URL.
@@ -19,6 +22,7 @@ func NewWhatAPI(url string) (*WhatAPI, error) {
 		return w, err
 	}
 	w.client = &http.Client{Jar: cookieJar}
+	w.limiter = rate.NewLimiter(5, 5)
 	return w, err
 }
 
@@ -29,11 +33,14 @@ type WhatAPI struct {
 	authkey  string
 	passkey  string
 	loggedIn bool
+	ctx      context.Context
+	limiter  *rate.Limiter
 }
 
 //GetJSON sends a HTTP GET request to the API and decodes the JSON response into responseObj.
 func (w *WhatAPI) GetJSON(requestURL string, responseObj interface{}) error {
 	if w.loggedIn {
+		w.limiter.Wait(w.ctx)
 		resp, err := w.client.Get(requestURL)
 		if err != nil {
 			return err
@@ -75,6 +82,7 @@ func (w *WhatAPI) Login(username, password string) error {
 	params := url.Values{}
 	params.Set("username", username)
 	params.Set("password", password)
+	w.limiter.Wait(w.ctx)
 	resp, err := w.client.PostForm(w.baseURL+"login.php?", params)
 	if err != nil {
 		return err
@@ -99,6 +107,7 @@ func (w *WhatAPI) Logout() error {
 	if err != nil {
 		return err
 	}
+	w.limiter.Wait(w.ctx)
 	_, err = w.client.Get(requestURL)
 	if err != nil {
 		return err
