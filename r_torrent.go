@@ -1,5 +1,11 @@
 package whatapi
 
+import (
+	"regexp"
+	"strconv"
+	"strings"
+)
+
 type Torrent struct {
 	Group   GroupType   `json:"group"`
 	Torrent TorrentType `json:"torrent"`
@@ -77,4 +83,25 @@ type TorrentType struct {
 	FilePath                string `json:"filePath"`
 	UserID                  int    `json:"userID"`
 	Username                string `json:"username"`
+}
+
+// FileStruct represents what we know about the files in a torrent
+type FileStruct struct {
+	Name string
+	Size int64
+}
+
+// Files returns a slice of FileStruts for a torrent
+func (t TorrentType) Files() ([]FileStruct, error) {
+	f := []FileStruct{}
+	re := regexp.MustCompile("(.*){{{(.*)}}}")
+	for _, s := range strings.Split(t.FileList, "|||") {
+		m := re.FindStringSubmatch(s)
+		i, err := strconv.ParseInt(m[2], 10, 64)
+		if err != nil {
+			return nil, err
+		}
+		f = append(f, FileStruct{m[1], i})
+	}
+	return f, nil
 }
