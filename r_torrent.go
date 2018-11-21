@@ -1,6 +1,7 @@
 package whatapi
 
 import (
+	"fmt"
 	"regexp"
 	"strconv"
 	"strings"
@@ -93,13 +94,19 @@ type FileStruct struct {
 
 // Files returns a slice of FileStruts for a torrent
 func (t TorrentType) Files() ([]FileStruct, error) {
+	if t.FileList == "" {
+		return []FileStruct{}, nil
+	}
 	f := []FileStruct{}
 	re := regexp.MustCompile("(.*){{{(.*)}}}")
 	for _, s := range strings.Split(t.FileList, "|||") {
 		m := re.FindStringSubmatch(s)
+		if len(m) != 3 {
+			return nil, fmt.Errorf("could not parse %s", s)
+		}
 		i, err := strconv.ParseInt(m[2], 10, 64)
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("could not parse %s: %s", s, err)
 		}
 		f = append(f, FileStruct{m[1], i})
 	}
