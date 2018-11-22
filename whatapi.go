@@ -67,7 +67,6 @@ type WhatAPIStruct struct {
 	authkey   string
 	passkey   string
 	loggedIn  bool
-	ctx       context.Context
 	limiter   *rate.Limiter
 }
 
@@ -82,7 +81,7 @@ func (w *WhatAPIStruct) GetJSON(requestURL string, responseObj interface{}) erro
 	if err != nil {
 		return err
 	}
-	w.limiter.Wait(w.ctx)
+	w.limiter.Wait(context.TODO())
 	resp, err := w.client.Do(req)
 	if err != nil {
 		return err
@@ -149,7 +148,7 @@ func (w *WhatAPIStruct) Login(username, password string) error {
 	req, err := http.NewRequest("POST", w.baseURL+"login.php", reqBody)
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 	req.Header.Set("User-Agent", w.userAgent)
-	w.limiter.Wait(w.ctx)
+	w.limiter.Wait(context.TODO())
 	resp, err := w.client.Do(req)
 	if err != nil {
 		return err
@@ -175,7 +174,7 @@ func (w *WhatAPIStruct) Logout() error {
 	if err != nil {
 		return err
 	}
-	w.limiter.Wait(w.ctx)
+	w.limiter.Wait(context.TODO())
 	_, err = w.client.Get(requestURL)
 	if err != nil {
 		return err
