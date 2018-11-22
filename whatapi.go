@@ -16,16 +16,16 @@ import (
 
 //NewWhatAPI creates a new client for the What.CD API using the provided URL.
 func NewWhatAPI(url, agent string) (WhatAPI, error) {
-	w := new(WhatAPIStruct)
-	w.baseURL = url
-	w.userAgent = agent
 	cookieJar, err := cookiejar.New(nil)
 	if err != nil {
-		return w, err
+		return nil, err
 	}
-	w.client = &http.Client{Jar: cookieJar}
-	w.limiter = rate.NewLimiter(5, 5)
-	return w, err
+	return &WhatAPIStruct{
+		baseURL:   url,
+		userAgent: agent,
+		client:    &http.Client{Jar: cookieJar},
+		limiter:   rate.NewLimiter(.5, 5),
+	}, nil
 }
 
 //WhatAPI represents a client for the What.CD API.
