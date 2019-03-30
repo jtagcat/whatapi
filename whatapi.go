@@ -57,6 +57,7 @@ type WhatAPI interface {
 	GetTopTenTags(params url.Values) (TopTenTags, error)
 	GetTopTenUsers(params url.Values) (TopTenUsers, error)
 	GetSimilarArtists(id, limit int) (SimilarArtists, error)
+	ParseHTML(s string) (string, error)
 }
 
 //WhatAPIStruct represents a client for the What.CD API.
@@ -516,4 +517,26 @@ func (w *WhatAPIStruct) GetSimilarArtists(id, limit int) (SimilarArtists, error)
 		return similarArtists, err
 	}
 	return similarArtists, nil
+}
+
+func (w *WhatAPIStruct) ParseHTML(s string) (string, error) {
+	params := url.Values{}
+	params.Set("html", s)
+
+	reqBody := strings.NewReader(params.Encode())
+	req, err := http.NewRequest(
+		"POST", w.baseURL+"upload.php?action=parse_html", reqBody)
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	req.Header.Set("User-Agent", w.userAgent)
+	w.limiter.Wait(context.TODO())
+	resp, err := w.client.Do(req)
+	if err != nil {
+		return "", err
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode != 200 {
+		return "", errRequestFailedReason("Status Code " + resp.Status)
+	}
+	r, err := ioutil.ReadAll(resp.Body)
+	return string(r), err
 }
