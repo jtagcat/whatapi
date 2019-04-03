@@ -2,7 +2,6 @@
 package whatapi
 
 import (
-	"context"
 	"encoding/json"
 	"io/ioutil"
 	"net/http"
@@ -10,8 +9,6 @@ import (
 	"net/url"
 	"strconv"
 	"strings"
-
-	"golang.org/x/time/rate"
 )
 
 //NewWhatAPI creates a new client for the What.CD API using the provided URL.
@@ -24,7 +21,6 @@ func NewWhatAPI(url, agent string) (WhatAPI, error) {
 		baseURL:   url,
 		userAgent: agent,
 		client:    &http.Client{Jar: cookieJar},
-		limiter:   rate.NewLimiter(.5, 5),
 	}, nil
 }
 
@@ -68,7 +64,6 @@ type WhatAPIStruct struct {
 	authkey   string
 	passkey   string
 	loggedIn  bool
-	limiter   *rate.Limiter
 }
 
 //GetJSON sends a HTTP GET request to the API and decodes the JSON response into responseObj.
@@ -82,7 +77,6 @@ func (w *WhatAPIStruct) GetJSON(requestURL string, responseObj interface{}) erro
 	if err != nil {
 		return err
 	}
-	w.limiter.Wait(context.TODO())
 	resp, err := w.client.Do(req)
 	if err != nil {
 		return err
@@ -149,7 +143,6 @@ func (w *WhatAPIStruct) Login(username, password string) error {
 	req, err := http.NewRequest("POST", w.baseURL+"login.php", reqBody)
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 	req.Header.Set("User-Agent", w.userAgent)
-	w.limiter.Wait(context.TODO())
 	resp, err := w.client.Do(req)
 	if err != nil {
 		return err
@@ -175,7 +168,6 @@ func (w *WhatAPIStruct) Logout() error {
 	if err != nil {
 		return err
 	}
-	w.limiter.Wait(context.TODO())
 	_, err = w.client.Get(requestURL)
 	if err != nil {
 		return err
@@ -519,6 +511,8 @@ func (w *WhatAPIStruct) GetSimilarArtists(id, limit int) (SimilarArtists, error)
 	return similarArtists, nil
 }
 
+// ParseHTML takes an HTML formatted string and passes it to the server
+// to be converted into BBCode (only available on some Gazelle servers)
 func (w *WhatAPIStruct) ParseHTML(s string) (string, error) {
 	params := url.Values{}
 	params.Set("html", s)
@@ -528,7 +522,6 @@ func (w *WhatAPIStruct) ParseHTML(s string) (string, error) {
 		"POST", w.baseURL+"upload.php?action=parse_html", reqBody)
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 	req.Header.Set("User-Agent", w.userAgent)
-	w.limiter.Wait(context.TODO())
 	resp, err := w.client.Do(req)
 	if err != nil {
 		return "", err
