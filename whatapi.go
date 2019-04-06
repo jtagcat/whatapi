@@ -3,6 +3,7 @@ package whatapi
 
 import (
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"net/http"
 	"net/http/cookiejar"
@@ -22,6 +23,54 @@ func NewWhatAPI(url, agent string) (WhatAPI, error) {
 		userAgent: agent,
 		client:    &http.Client{Jar: cookieJar},
 	}, nil
+}
+
+type Group interface {
+	ID() int
+	Name() string
+	Artist() string
+	Year() int
+	WikiImage() (string, error)
+	Artists() ([]string, error)
+	Importance() ([]int, error)
+	RecordLabel() string
+	CatalogueNumber() string
+	ReleaseType() int
+	Tags() []string
+	WikiBody() (string, error)
+	String() string
+}
+
+func GroupString(g Group) string {
+	return fmt.Sprintf("%s - %s (%4d)", g.Artist(), g.Name(), g.Year())
+}
+
+type Torrent interface {
+	ID() int
+	FilePath() string
+	Format() string
+	Encoding() string
+	Media() string
+	Remastered() bool
+	RemasterCatalogueNumber() string
+	RemasterRecordLabel() string
+	RemasterTitle() string
+	RemasterYear() int
+	Description() string
+	Scene() bool
+	HasLog() bool
+	String() string
+	Files() ([]FileStruct, error)
+}
+
+func TorrentString(t Torrent) string {
+	s := fmt.Sprintf("[%s %s %s]", t.Media(), t.Format(), t.Encoding())
+	if t.Remastered() {
+		s = fmt.Sprintf("%s{(%4d) %s/%s/%s}",
+			s, t.RemasterYear(), t.RemasterRecordLabel(),
+			t.RemasterCatalogueNumber(), t.RemasterTitle())
+	}
+	return s
 }
 
 //WhatAPI represents a client for the What.CD API.

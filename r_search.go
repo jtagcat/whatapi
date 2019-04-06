@@ -1,5 +1,9 @@
 package whatapi
 
+import (
+	"fmt"
+)
+
 type RequestsSearch struct {
 	CurrentPage int `json:"currentPage"`
 	Pages       int `json:"pages"`
@@ -35,7 +39,7 @@ type RequestsSearch struct {
 	} `json:"results"`
 }
 
-type TorrentStruct struct {
+type SearchTorrentStruct struct {
 	TorrentID int `json:"torrentId"`
 	EditionID int `json:"editionId"`
 	Artists   []struct {
@@ -43,44 +47,156 @@ type TorrentStruct struct {
 		Name    string `json:"name"`
 		AliasID int    `json:"aliasid"`
 	} `json:"artists"`
-	Remastered              bool   `json:"remastered"`
-	RemasterYear            int    `json:"remasterYear"`
-	RemasterCatalogueNumber string `json:"remasterCatalogueNumber"`
-	RemasterTitle           string `json:"remasterTitle"`
-	Media                   string `json:"media"`
-	Encoding                string `json:"encoding"`
-	Format                  string `json:"format"`
-	HasLog                  bool   `json:"hasLog"`
-	LogScore                int    `json:"logScore"`
-	HasCue                  bool   `json:"hasCue"`
-	Scene                   bool   `json:"scene"`
-	VanityHouse             bool   `json:"vanityHouse"`
-	FileCount               int    `json:"fileCount"`
-	Time                    string `json:"time"`
-	Size                    int64  `json:"size"`
-	Snatches                int    `json:"snatches"`
-	Seeders                 int    `json:"seeders"`
-	Leechers                int    `json:"leechers"`
-	IsFreeleech             bool   `json:"isFreeleech"`
-	IsNeutralLeech          bool   `json:"isNeutralLeech"`
-	IsPersonalFreeleech     bool   `json:"isPersonalFreeleech"`
-	CanUseToken             bool   `json:"canUseToken"`
+	RemasteredF              bool   `json:"remastered"`
+	RemasterYearF            int    `json:"remasterYear"`
+	RemasterCatalogueNumberF string `json:"remasterCatalogueNumber"`
+	RemasterTitleF           string `json:"remasterTitle"`
+	MediaF                   string `json:"media"`
+	EncodingF                string `json:"encoding"`
+	FormatF                  string `json:"format"`
+	HasLogF                  bool   `json:"hasLog"`
+	LogScore                 int    `json:"logScore"`
+	HasCue                   bool   `json:"hasCue"`
+	SceneF                   bool   `json:"scene"`
+	VanityHouse              bool   `json:"vanityHouse"`
+	FileCount                int    `json:"fileCount"`
+	Time                     string `json:"time"`
+	Size                     int64  `json:"size"`
+	Snatches                 int    `json:"snatches"`
+	Seeders                  int    `json:"seeders"`
+	Leechers                 int    `json:"leechers"`
+	IsFreeleech              bool   `json:"isFreeleech"`
+	IsNeutralLeech           bool   `json:"isNeutralLeech"`
+	IsPersonalFreeleech      bool   `json:"isPersonalFreeleech"`
+	CanUseToken              bool   `json:"canUseToken"`
+}
+
+func (ts SearchTorrentStruct) ID() int {
+	return ts.TorrentID
+}
+
+func (ts SearchTorrentStruct) Format() string {
+	return ts.FormatF
+}
+
+func (ts SearchTorrentStruct) Encoding() string {
+	return ts.EncodingF
+}
+
+func (ts SearchTorrentStruct) Media() string {
+	return ts.MediaF
+}
+
+func (ts SearchTorrentStruct) Remastered() bool {
+	return ts.RemasteredF
+}
+
+func (ts SearchTorrentStruct) RemasterCatalogueNumber() string {
+	return ts.RemasterCatalogueNumberF
+}
+
+func (ts SearchTorrentStruct) RemasterRecordLabel() string {
+	return " (Unknown) "
+}
+
+func (ts SearchTorrentStruct) RemasterTitle() string {
+	return ts.RemasterTitleF
+}
+
+func (ts SearchTorrentStruct) RemasterYear() int {
+	return ts.RemasterYearF
+}
+
+func (ts SearchTorrentStruct) Description() string {
+	return " (No Description) "
+}
+
+func (ts SearchTorrentStruct) Scene() bool {
+	return ts.SceneF
+}
+
+func (ts SearchTorrentStruct) HasLog() bool {
+	return ts.HasLogF
+}
+
+func (ts SearchTorrentStruct) String() string {
+	return TorrentString(ts)
+}
+
+func (ts SearchTorrentStruct) FilePath() string {
+	return " (No File Path) "
+}
+
+func (ts SearchTorrentStruct) Files() ([]FileStruct, error) {
+	return []FileStruct{}, fmt.Errorf("No files in a search result")
 }
 
 type TorrentSearchResultStruct struct {
 	GroupID       int             `json:"groupId"`
 	GroupName     string          `json:"groupName"`
-	Artist        string          `json:"artist"`
-	Tags          []string        `json:"tags"`
+	ArtistF       string          `json:"artist"`
+	TagsF         []string        `json:"tags"`
 	Bookmarked    bool            `json:"bookmarked"`
 	VanityHouse   bool            `json:"vanityHouse"`
 	GroupYear     int             `json:"groupYear"`
-	ReleaseType   string          `json:"releasetType"`
+	ReleaseTypeF  int             `json:"releasetType,string"`
 	GroupTime     string          `json:"groupTime"`
 	TotalSnatched int             `json:"totalSnatched"`
 	TotalSeeders  int             `json:"totalSeeders"`
 	TotalLeechers int             `json:"totalLeechers"`
 	Torrents      []TorrentStruct `json:"torrents"`
+}
+
+func (ts TorrentSearchResultStruct) ID() int {
+	return ts.GroupID
+}
+
+func (ts TorrentSearchResultStruct) Name() string {
+	return ts.GroupName
+}
+
+func (ts TorrentSearchResultStruct) Artist() string {
+	return ts.ArtistF
+}
+
+func (ts TorrentSearchResultStruct) Year() int {
+	return ts.GroupYear
+}
+
+func (ts TorrentSearchResultStruct) WikiImage() (string, error) {
+	return "", fmt.Errorf("TorrentSearchResultStruct does not have a WikiImage")
+}
+
+func (ts TorrentSearchResultStruct) Artists() ([]string, error) {
+	return nil, fmt.Errorf("TorrentSearchResultStruct does not have Artists")
+}
+
+func (ts TorrentSearchResultStruct) Importance() ([]int, error) {
+	return nil, fmt.Errorf("TorrentSearchResultStruct does not have Artists")
+}
+
+func (ts TorrentSearchResultStruct) RecordLabel() string {
+	return "" // calling this is an error
+}
+
+func (ts TorrentSearchResultStruct) CatalogueNumber() string {
+	return "" // calling this is an error
+}
+
+func (ts TorrentSearchResultStruct) ReleaseType() int {
+	return ts.ReleaseTypeF
+}
+
+func (ts TorrentSearchResultStruct) Tags() []string {
+	return ts.TagsF
+}
+
+func (ts TorrentSearchResultStruct) WikiBody() (string, error) {
+	return "", fmt.Errorf("TorrentSearchResultStruct does not have WikiBody")
+}
+
+func (ts TorrentSearchResultStruct) String() string {
+	return GroupString(ts)
 }
 
 type TorrentSearch struct {
