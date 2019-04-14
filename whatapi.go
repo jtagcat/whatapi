@@ -30,15 +30,23 @@ type Group interface {
 	Name() string
 	Artist() string
 	Year() int
-	WikiImage() (string, error)
-	Artists() ([]string, error)
-	Importance() ([]int, error)
-	RecordLabel() string
-	CatalogueNumber() string
 	ReleaseType() int
 	Tags() []string
-	WikiBody() (string, error)
 	String() string
+}
+
+type GroupRelease interface {
+	Group
+	RecordLabel() string
+	CatalogueNumber() string
+}
+
+type GroupExt interface {
+	GroupRelease
+	WikiImage() string
+	Artists() []string
+	Importance() []int
+	WikiBody() string
 }
 
 func GroupString(g Group) string {
@@ -47,27 +55,48 @@ func GroupString(g Group) string {
 
 type Torrent interface {
 	ID() int
-	FilePath() string
 	Format() string
 	Encoding() string
 	Media() string
 	Remastered() bool
 	RemasterCatalogueNumber() string
-	RemasterRecordLabel() string
 	RemasterTitle() string
 	RemasterYear() int
-	Description() string
 	Scene() bool
 	HasLog() bool
 	String() string
+	FileCount() int
+	FileSize() int64
+}
+
+type TorrentRecordLabel interface {
+	Torrent
+	RemasterRecordLabel() string
+}
+
+type TorrentFiles interface {
+	TorrentRecordLabel
+	FilePath() string
 	Files() ([]FileStruct, error)
+}
+
+type TorrentExt interface {
+	TorrentFiles
+	Description() string
 }
 
 func TorrentString(t Torrent) string {
 	s := fmt.Sprintf("[%s %s %s]", t.Media(), t.Format(), t.Encoding())
-	if t.Remastered() {
+	if !t.Remastered() {
+		return s
+	}
+	if r, ok := t.(TorrentRecordLabel); ok {
 		s = fmt.Sprintf("%s{(%4d) %s/%s/%s}",
-			s, t.RemasterYear(), t.RemasterRecordLabel(),
+			s, t.RemasterYear(), r.RemasterRecordLabel(),
+			t.RemasterCatalogueNumber(), t.RemasterTitle())
+	} else {
+		s = fmt.Sprintf("%s{(%4d) %s/%s}",
+			s, t.RemasterYear(),
 			t.RemasterCatalogueNumber(), t.RemasterTitle())
 	}
 	return s

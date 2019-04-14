@@ -99,19 +99,19 @@ func (g GroupStruct) Year() int {
 	return g.YearF
 }
 
-func (g GroupStruct) WikiImage() (string, error) {
-	return g.WikiImageF, nil
+func (g GroupStruct) WikiImage() string {
+	return g.WikiImageF
 }
 
-func (g GroupStruct) makeArtistsImportance() {
-	g.artists = make([]string, len(g.MusicInfo.Composers)+
+func (g *GroupStruct) makeArtistsImportance() {
+	g.artists = make([]string, 0, len(g.MusicInfo.Composers)+
 		len(g.MusicInfo.DJ)+
 		len(g.MusicInfo.Artists)+
 		len(g.MusicInfo.With)+
 		len(g.MusicInfo.Conductor)+
 		len(g.MusicInfo.RemixedBy)+
 		len(g.MusicInfo.Producer))
-	g.importance = make([]int, len(g.artists))
+	g.importance = make([]int, 0, len(g.artists))
 	for _, n := range g.MusicInfo.Composers {
 		g.artists = append(g.artists, n.Name)
 		g.importance = append(g.importance, 4)
@@ -142,18 +142,18 @@ func (g GroupStruct) makeArtistsImportance() {
 	}
 }
 
-func (g GroupStruct) Artists() ([]string, error) {
+func (g GroupStruct) Artists() []string {
 	if g.artists == nil {
 		g.makeArtistsImportance()
 	}
-	return g.artists, nil
+	return g.artists
 }
 
-func (g GroupStruct) Importance() ([]int, error) {
+func (g GroupStruct) Importance() []int {
 	if g.importance == nil {
 		g.makeArtistsImportance()
 	}
-	return g.importance, nil
+	return g.importance
 }
 
 func (g GroupStruct) RecordLabel() string {
@@ -172,8 +172,8 @@ func (g GroupStruct) Tags() []string {
 	return g.TagsF
 }
 
-func (g GroupStruct) WikiBody() (string, error) {
-	return g.WikiBodyF, nil
+func (g GroupStruct) WikiBody() string {
+	return g.WikiBodyF
 }
 
 func (g GroupStruct) String() string {
@@ -342,8 +342,8 @@ type TorrentStruct struct {
 	HasCue                   bool   `json:"hasCue"`
 	LogScore                 int    `json:"logScore"`
 
-	FileCount    int    `json:"fileCount"`
-	Size         int    `json:"size"`
+	FileCountF   int    `json:"fileCount"`
+	Size         int64  `json:"size"`
 	Seeders      int    `json:"seeders"`
 	Leechers     int    `json:"leechers"`
 	Snatched     int    `json:"snatched"`
@@ -406,6 +406,12 @@ func (t TorrentStruct) String() string {
 }
 func (t TorrentStruct) FilePath() string {
 	return html.UnescapeString(t.FilePathF)
+}
+func (t TorrentStruct) FileCount() int {
+	return t.FileCountF
+}
+func (t TorrentStruct) FileSize() int64 {
+	return t.Size
 }
 func (t TorrentStruct) Files() ([]FileStruct, error) {
 	if t.files != nil {

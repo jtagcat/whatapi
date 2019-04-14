@@ -1,7 +1,7 @@
 package whatapi
 
 import (
-	"fmt"
+	"html"
 	"strconv"
 )
 
@@ -32,7 +32,7 @@ type ArtistGroupStruct struct {
 
 type Artist struct {
 	ID                   int    `json:"id"`
-	Name                 string `json:"name"`
+	NameF                string `json:"name"`
 	NotificationsEnabled bool   `json:"notificationsEnabled"`
 	HasBookmarked        bool   `json:"hasBookmarked"`
 	Image                string `json:"image"`
@@ -67,60 +67,60 @@ type Artist struct {
 	} `json:"requests"`
 }
 
+func (a Artist) Name() string {
+	return html.UnescapeString(a.NameF)
+}
+
 func (g ArtistGroupStruct) ID() int {
 	return g.GroupID
 }
 
 func (g ArtistGroupStruct) Name() string {
-	return g.GroupName
+	return html.UnescapeString(g.GroupName)
 }
 
 func (g ArtistGroupStruct) Artist() string {
 	// this is embarrassing, we're embedded in an Artist object
 	// we should be able to produce the Artist name
-	return g.ArtistsF[0].Name
+	if len(g.ArtistsF) > 0 {
+		return g.ArtistsF[0].Name
+	}
+	for i := 1; i <= 7; i++ {
+		s := strconv.Itoa(i)
+		if len(g.ExtendedArtists[s]) > 0 {
+			return g.ExtendedArtists[s][0].Name
+		}
+	}
+	return " (Unknown Artist) "
 }
 
 func (g ArtistGroupStruct) Year() int {
 	return g.GroupYear
 }
 
-func (g ArtistGroupStruct) WikiImage() (string, error) {
-	return "", fmt.Errorf("Artist Group does not contain an image")
-}
-
-func (g ArtistGroupStruct) makeArtistsImportance() error {
-	g.artists = make([]string, 5)
-	g.importance = make([]int, 5)
-	for i, e := range g.ExtendedArtists {
-		v, err := strconv.Atoi(i)
-		if err != nil {
-			return err
-		}
-		for _, a := range e {
+func (g *ArtistGroupStruct) makeArtistsImportance() {
+	g.artists = make([]string, 0, 7)
+	g.importance = make([]int, 0, 7)
+	for i := 1; i <= 7; i++ {
+		for _, a := range g.ExtendedArtists[strconv.Itoa(i)] {
 			g.artists = append(g.artists, a.Name)
-			g.importance = append(g.importance, v)
+			g.importance = append(g.importance, i)
 		}
 	}
-	return nil
 }
 
-func (g ArtistGroupStruct) Artists() ([]string, error) {
+func (g ArtistGroupStruct) Artists() []string {
 	if g.artists == nil {
-		if err := g.makeArtistsImportance(); err != nil {
-			return []string{}, err
-		}
+		g.makeArtistsImportance()
 	}
-	return g.artists, nil
+	return g.artists
 }
 
-func (g ArtistGroupStruct) Importance() ([]int, error) {
+func (g ArtistGroupStruct) Importance() []int {
 	if g.importance == nil {
-		if err := g.makeArtistsImportance(); err != nil {
-			return []int{}, err
-		}
+		g.makeArtistsImportance()
 	}
-	return g.importance, nil
+	return g.importance
 }
 
 func (g ArtistGroupStruct) RecordLabel() string {
@@ -137,10 +137,6 @@ func (g ArtistGroupStruct) ReleaseType() int {
 
 func (g ArtistGroupStruct) Tags() []string {
 	return g.TagsF
-}
-
-func (g ArtistGroupStruct) WikiBody() (string, error) {
-	return "", fmt.Errorf("Artist Group does not contain a WikiBody")
 }
 
 func (g ArtistGroupStruct) String() string {

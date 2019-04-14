@@ -1,7 +1,7 @@
 package whatapi
 
 import (
-	"fmt"
+	"html"
 )
 
 type RequestsSearch struct {
@@ -59,7 +59,7 @@ type SearchTorrentStruct struct {
 	HasCue                   bool   `json:"hasCue"`
 	SceneF                   bool   `json:"scene"`
 	VanityHouse              bool   `json:"vanityHouse"`
-	FileCount                int    `json:"fileCount"`
+	FileCountF               int    `json:"fileCount"`
 	Time                     string `json:"time"`
 	Size                     int64  `json:"size"`
 	Snatches                 int    `json:"snatches"`
@@ -95,20 +95,12 @@ func (ts SearchTorrentStruct) RemasterCatalogueNumber() string {
 	return ts.RemasterCatalogueNumberF
 }
 
-func (ts SearchTorrentStruct) RemasterRecordLabel() string {
-	return " (Unknown) "
-}
-
 func (ts SearchTorrentStruct) RemasterTitle() string {
 	return ts.RemasterTitleF
 }
 
 func (ts SearchTorrentStruct) RemasterYear() int {
 	return ts.RemasterYearF
-}
-
-func (ts SearchTorrentStruct) Description() string {
-	return " (No Description) "
 }
 
 func (ts SearchTorrentStruct) Scene() bool {
@@ -123,12 +115,12 @@ func (ts SearchTorrentStruct) String() string {
 	return TorrentString(ts)
 }
 
-func (ts SearchTorrentStruct) FilePath() string {
-	return " (No File Path) "
+func (ts SearchTorrentStruct) FileCount() int {
+	return ts.FileCountF
 }
 
-func (ts SearchTorrentStruct) Files() ([]FileStruct, error) {
-	return []FileStruct{}, fmt.Errorf("No files in a search result")
+func (ts SearchTorrentStruct) FileSize() int64 {
+	return ts.Size
 }
 
 type TorrentSearchResultStruct struct {
@@ -152,35 +144,15 @@ func (ts TorrentSearchResultStruct) ID() int {
 }
 
 func (ts TorrentSearchResultStruct) Name() string {
-	return ts.GroupName
+	return html.UnescapeString(ts.GroupName)
 }
 
 func (ts TorrentSearchResultStruct) Artist() string {
-	return ts.ArtistF
+	return html.UnescapeString(ts.ArtistF)
 }
 
 func (ts TorrentSearchResultStruct) Year() int {
 	return ts.GroupYear
-}
-
-func (ts TorrentSearchResultStruct) WikiImage() (string, error) {
-	return "", fmt.Errorf("TorrentSearchResultStruct does not have a WikiImage")
-}
-
-func (ts TorrentSearchResultStruct) Artists() ([]string, error) {
-	return nil, fmt.Errorf("TorrentSearchResultStruct does not have Artists")
-}
-
-func (ts TorrentSearchResultStruct) Importance() ([]int, error) {
-	return nil, fmt.Errorf("TorrentSearchResultStruct does not have Artists")
-}
-
-func (ts TorrentSearchResultStruct) RecordLabel() string {
-	return "" // calling this is an error
-}
-
-func (ts TorrentSearchResultStruct) CatalogueNumber() string {
-	return "" // calling this is an error
 }
 
 func (ts TorrentSearchResultStruct) ReleaseType() int {
@@ -189,10 +161,6 @@ func (ts TorrentSearchResultStruct) ReleaseType() int {
 
 func (ts TorrentSearchResultStruct) Tags() []string {
 	return ts.TagsF
-}
-
-func (ts TorrentSearchResultStruct) WikiBody() (string, error) {
-	return "", fmt.Errorf("TorrentSearchResultStruct does not have WikiBody")
 }
 
 func (ts TorrentSearchResultStruct) String() string {
