@@ -122,7 +122,7 @@ type WhatAPI interface {
 	GetTorrentBookmarks() (TorrentBookmarks, error)
 	GetArtist(id int, params url.Values) (Artist, error)
 	GetRequest(id int, params url.Values) (Request, error)
-	GetTorrent(id int, params url.Values) (Torrent, error)
+	GetTorrent(id int, params url.Values) (GetTorrentStruct, error)
 	GetTorrentGroup(id int, params url.Values) (TorrentGroup, error)
 	SearchTorrents(searchStr string, params url.Values) (TorrentSearch, error)
 	SearchRequests(searchStr string, params url.Values) (RequestsSearch, error)
@@ -453,7 +453,7 @@ func (w *WhatAPIStruct) GetRequest(id int, params url.Values) (Request, error) {
 }
 
 //GetTorrent retrieves torrent information using the provided torrent id and parameters.
-func (w *WhatAPIStruct) GetTorrent(id int, params url.Values) (Torrent, error) {
+func (w *WhatAPIStruct) GetTorrent(id int, params url.Values) (GetTorrentStruct, error) {
 	torrent := TorrentResponse{}
 	params.Set("id", strconv.Itoa(id))
 	requestURL, err := buildURL(w.baseURL, "ajax.php", "torrent", params)

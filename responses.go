@@ -97,9 +97,9 @@ type TopTenUsersResponse struct {
 }
 
 type TorrentResponse struct {
-	Status   string  `json:"status"`
-	Error    string  `json:"error"`
-	Response Torrent `json:"response"`
+	Status   string           `json:"status"`
+	Error    string           `json:"error"`
+	Response GetTorrentStruct `json:"response"`
 }
 
 type TorrentBookmarksResponse struct {
