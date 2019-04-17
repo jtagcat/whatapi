@@ -326,6 +326,81 @@ func (g GroupStruct) String() string {
 }
 */
 
+type ArtistTorrentStruct struct {
+	IDF                  int    `json:"id"`
+	GroupIDF             int    `json:"groupId"`
+	MediaF               string `json:"media"`
+	FormatF              string `json:"format"`
+	EncodingF            string `json:"encoding"`
+	RemasterYearF        int    `json:"remasterYear"`
+	RemasteredF          bool   `json:"remastered"`
+	RemasterTitleF       string `json:"remasterTitle"`
+	RemasterRecordLabelF string `json:"remasterRecordLabel"`
+	SceneF               bool   `json:"scene"`
+	HasLogF              bool   `json:"hasLog"`
+	HasCue               bool   `json:"hasCue"`
+	LogScore             int    `json:"logScore"`
+	FileCountF           int    `json:"fileCount"`
+	FreeTorrent          bool   `json:"freeTorrent"`
+	Size                 int64  `json:"size"`
+	Leechers             int    `json:"leechers"`
+	Seeders              int    `json:"seeders"`
+	Snatched             int    `json:"snatched"`
+	Time                 string `json:"time"`
+	HasFile              int    `json:"haFile"`
+}
+
+func (t ArtistTorrentStruct) ID() int {
+	return t.IDF
+}
+
+func (t ArtistTorrentStruct) GroupID() int {
+	return t.GroupIDF
+}
+
+func (t ArtistTorrentStruct) Format() string {
+	return t.FormatF
+}
+
+func (t ArtistTorrentStruct) Encoding() string {
+	return t.EncodingF
+}
+
+func (t ArtistTorrentStruct) Media() string {
+	return t.MediaF
+}
+
+func (t ArtistTorrentStruct) Remastered() bool {
+	return t.RemasteredF
+}
+
+func (t ArtistTorrentStruct) RemasterRecordLabel() string {
+	return html.UnescapeString(t.RemasterRecordLabelF)
+}
+
+func (t ArtistTorrentStruct) RemasterTitle() string {
+	return html.UnescapeString(t.RemasterTitleF)
+}
+
+func (t ArtistTorrentStruct) RemasterYear() int {
+	return t.RemasterYearF
+}
+func (t ArtistTorrentStruct) Scene() bool {
+	return t.SceneF
+}
+func (t ArtistTorrentStruct) HasLog() bool {
+	return t.HasLogF
+}
+func (t ArtistTorrentStruct) String() string {
+	return TorrentString(t)
+}
+func (t ArtistTorrentStruct) FileCount() int {
+	return t.FileCountF
+}
+func (t ArtistTorrentStruct) FileSize() int64 {
+	return t.Size
+}
+
 type TorrentStruct struct {
 	IDF                      int    `json:"id"`
 	InfoHash                 string `json:"infoHash"`

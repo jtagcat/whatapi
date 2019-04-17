@@ -6,16 +6,16 @@ import (
 )
 
 type ArtistGroupStruct struct {
-	GroupID              int             `json:"groupId"`
-	GroupYear            int             `json:"groupYear"`
-	GroupRecordLabel     string          `json:"groupRecordLabel"`
-	GroupCatalogueNumber string          `json:"groupCatalogueNumber"`
-	TagsF                []string        `json:"tags"`
-	ReleaseTypeF         int             `json:"releaseType"`
-	GroupVanityHouse     bool            `json:"groupVanityHouse"`
-	HasBookmarked        bool            `json:"hasBookmarked"`
-	Torrent              []TorrentStruct `json:"torrent"`
-	GroupName            string          `json:"groupName"`
+	GroupID              int                   `json:"groupId"`
+	GroupYear            int                   `json:"groupYear"`
+	GroupRecordLabel     string                `json:"groupRecordLabel"`
+	GroupCatalogueNumber string                `json:"groupCatalogueNumber"`
+	TagsF                []string              `json:"tags"`
+	ReleaseTypeF         int                   `json:"releaseType"`
+	GroupVanityHouse     bool                  `json:"groupVanityHouse"`
+	HasBookmarked        bool                  `json:"hasBookmarked"`
+	Torrent              []ArtistTorrentStruct `json:"torrent"`
+	GroupName            string                `json:"groupName"`
 	ArtistsF             []struct {
 		ID      int    `json:"id"`
 		Name    string `json:"name"`

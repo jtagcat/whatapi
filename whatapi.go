@@ -59,7 +59,6 @@ type Torrent interface {
 	Encoding() string
 	Media() string
 	Remastered() bool
-	RemasterCatalogueNumber() string
 	RemasterTitle() string
 	RemasterYear() int
 	Scene() bool
@@ -69,13 +68,18 @@ type Torrent interface {
 	FileSize() int64
 }
 
+type TorrentCatalogueNumber interface {
+	RemasterCatalogueNumber() string
+}
+
 type TorrentRecordLabel interface {
-	Torrent
 	RemasterRecordLabel() string
 }
 
 type TorrentFiles interface {
+	Torrent
 	TorrentRecordLabel
+	TorrentCatalogueNumber
 	FilePath() string
 	Files() ([]FileStruct, error)
 }
@@ -90,15 +94,17 @@ func TorrentString(t Torrent) string {
 	if !t.Remastered() {
 		return s
 	}
+	label := ""
 	if r, ok := t.(TorrentRecordLabel); ok {
-		s = fmt.Sprintf("%s{(%4d) %s/%s/%s}",
-			s, t.RemasterYear(), r.RemasterRecordLabel(),
-			t.RemasterCatalogueNumber(), t.RemasterTitle())
-	} else {
-		s = fmt.Sprintf("%s{(%4d) %s/%s}",
-			s, t.RemasterYear(),
-			t.RemasterCatalogueNumber(), t.RemasterTitle())
+		label = r.RemasterRecordLabel()
 	}
+	number := ""
+	if r, ok := t.(TorrentCatalogueNumber); ok {
+		label = r.RemasterCatalogueNumber()
+	}
+	s = fmt.Sprintf("%s{(%4d) %s/%s/%s}",
+		s, t.RemasterYear(), label,
+		number, t.RemasterTitle())
 	return s
 }
 
