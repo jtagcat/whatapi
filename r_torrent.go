@@ -79,9 +79,13 @@ func (g GroupStruct) Artist() string {
 	if len(g.MusicInfo.With) > 0 {
 		return html.UnescapeString(g.MusicInfo.With[0].Name)
 	}
-	// pick the first of multiple main artists
-	if len(g.MusicInfo.Artists) > 0 {
-		return html.UnescapeString(g.MusicInfo.Artists[0].Name)
+	if len(g.MusicInfo.Artists) == 2 {
+		return fmt.Sprintf("%s & %s",
+			html.UnescapeString(g.MusicInfo.Artists[0].Name),
+			html.UnescapeString(g.MusicInfo.Artists[1].Name))
+	}
+	if len(g.MusicInfo.Artists) > 2 {
+		return "VA"
 	}
 	if len(g.MusicInfo.RemixedBy) > 0 {
 		return html.UnescapeString(g.MusicInfo.RemixedBy[0].Name)
