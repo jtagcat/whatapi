@@ -420,20 +420,20 @@ type TorrentStruct struct {
 	HasLogF                  bool   `json:"hasLog"`
 	HasCue                   bool   `json:"hasCue"`
 	LogScore                 int    `json:"logScore"`
-
-	FileCountF   int    `json:"fileCount"`
-	Size         int64  `json:"size"`
-	Seeders      int    `json:"seeders"`
-	Leechers     int    `json:"leechers"`
-	Snatched     int    `json:"snatched"`
-	FreeTorrent  bool   `json:"freeTorrent"`
-	Time         string `json:"time"`
-	DescriptionF string `json:"description"`
-	FileList     string `json:"fileList"`
-	FilePathF    string `json:"filePath"`
-	UserID       int    `json:"userID"`
-	Username     string `json:"username"`
-	files        []FileStruct
+	FileCountF               int    `json:"fileCount"`
+	Size                     int64  `json:"size"`
+	Seeders                  int    `json:"seeders"`
+	Leechers                 int    `json:"leechers"`
+	Snatched                 int    `json:"snatched"`
+	FreeTorrent              bool   `json:"freeTorrent"`
+	Reported                 bool   `json:"reported"`
+	Time                     string `json:"time"`
+	DescriptionF             string `json:"description"`
+	FileList                 string `json:"fileList"`
+	FilePathF                string `json:"filePath"`
+	UserID                   int    `json:"userID"`
+	Username                 string `json:"username"`
+	files                    []FileStruct
 }
 
 func (t TorrentStruct) ID() int {
