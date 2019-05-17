@@ -168,8 +168,8 @@ func (g GroupStruct) CatalogueNumber() string {
 	return g.CatalogueNumberF
 }
 
-func (g GroupStruct) ReleaseType() int {
-	return g.ReleaseTypeF
+func (g GroupStruct) ReleaseType() string {
+	return ReleaseTypeString(g.ReleaseTypeF)
 }
 
 func (g GroupStruct) Tags() []string {

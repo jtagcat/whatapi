@@ -30,9 +30,33 @@ type Group interface {
 	Name() string
 	Artist() string
 	Year() int
-	ReleaseType() int
+	ReleaseType() string
 	Tags() []string
 	String() string
+}
+
+func ReleaseTypeString(r int) string {
+	s := map[int]string{
+		1:  "Album",
+		3:  "Soundtrack",
+		5:  "EP",
+		6:  "Anthology",
+		7:  "Compilation",
+		9:  "Single",
+		11: "Live",
+		13: "Remix",
+		14: "Bootleg",
+		15: "Interview",
+		16: "Mixtape",
+		17: "Demo",
+		18: "Concert",
+		19: "DJ",
+		21: "Unknown",
+	}
+	if v, ok := s[r]; ok {
+		return v
+	}
+	return "Invalid Release Type"
 }
 
 type GroupRelease interface {
