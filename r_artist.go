@@ -1,7 +1,9 @@
 package whatapi
 
 import (
+	"fmt"
 	"html"
+	"os"
 	"strconv"
 )
 
@@ -82,6 +84,8 @@ func (g ArtistGroupStruct) Name() string {
 func (g ArtistGroupStruct) Artist() string {
 	// this is embarrassing, we're embedded in an Artist object
 	// we should be able to produce the Artist name
+	fmt.Fprint(os.Stderr, "ArtistGroupStruct.Artist() not implemented")
+	os.Exit(-1)
 	if len(g.ArtistsF) > 0 {
 		return g.ArtistsF[0].Name
 	}
