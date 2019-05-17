@@ -70,6 +70,16 @@ func (g GroupStruct) Name() string {
 }
 
 func (g GroupStruct) Artist() string {
+	if g.ReleaseType() == "Compilation" {
+		if len(g.MusicInfo.DJ) == 1 {
+			return html.UnescapeString(g.MusicInfo.DJ[0].Name)
+		}
+		if len(g.MusicInfo.DJ) == 2 {
+			return fmt.Sprintf("%s & %s",
+				html.UnescapeString(g.MusicInfo.DJ[0].Name),
+				html.UnescapeString(g.MusicInfo.DJ[1].Name))
+		}
+	}
 	if len(g.MusicInfo.Artists) == 1 {
 		return html.UnescapeString(g.MusicInfo.Artists[0].Name)
 	}
