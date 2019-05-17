@@ -30,7 +30,7 @@ type Group interface {
 	Name() string
 	Artist() string
 	Year() int
-	ReleaseType() string
+	ReleaseType() int
 	Tags() []string
 	String() string
 }

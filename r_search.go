@@ -155,8 +155,8 @@ func (ts TorrentSearchResultStruct) Year() int {
 	return ts.GroupYear
 }
 
-func (ts TorrentSearchResultStruct) ReleaseType() string {
-	return ReleaseTypeString(ts.ReleaseTypeF)
+func (ts TorrentSearchResultStruct) ReleaseType() int {
+	return ts.ReleaseTypeF
 }
 
 func (ts TorrentSearchResultStruct) Tags() []string {

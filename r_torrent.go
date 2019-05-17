@@ -70,7 +70,7 @@ func (g GroupStruct) Name() string {
 }
 
 func (g GroupStruct) Artist() string {
-	if g.ReleaseType() == "Compilation" {
+	if ReleaseTypeString(g.ReleaseType()) == "Compilation" {
 		if len(g.MusicInfo.DJ) == 1 {
 			return html.UnescapeString(g.MusicInfo.DJ[0].Name)
 		}
@@ -178,8 +178,8 @@ func (g GroupStruct) CatalogueNumber() string {
 	return g.CatalogueNumberF
 }
 
-func (g GroupStruct) ReleaseType() string {
-	return ReleaseTypeString(g.ReleaseTypeF)
+func (g GroupStruct) ReleaseType() int {
+	return g.ReleaseTypeF
 }
 
 func (g GroupStruct) Tags() []string {

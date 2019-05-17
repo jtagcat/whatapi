@@ -135,8 +135,8 @@ func (g ArtistGroupStruct) CatalogueNumber() string {
 	return g.GroupCatalogueNumber
 }
 
-func (g ArtistGroupStruct) ReleaseType() string {
-	return ReleaseTypeString(g.ReleaseTypeF)
+func (g ArtistGroupStruct) ReleaseType() int {
+	return g.ReleaseTypeF
 }
 
 func (g ArtistGroupStruct) Tags() []string {
