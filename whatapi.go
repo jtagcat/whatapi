@@ -95,21 +95,17 @@ func GroupString(g Group) string {
 		}
 		mi := gs.MusicInfo
 		s := []string{}
-		if i := oneOrTwoMusicInfos(
-			mi.Composers); i != "" {
+		if i := oneOrTwoMusicInfos(mi.Composers); i != "" {
 			s = append(s, i)
 		}
-		s = append(s, gs.Name())
-		if i := oneOrTwoMusicInfos(
-			mi.Artists); i != "" {
+		s = append(s, gs.Name(), "-")
+		if i := oneOrTwoMusicInfos(mi.Artists); i != "" {
 			s = append(s, i)
 		}
-		s = append(s, gs.Name())
-		if i := oneOrTwoMusicInfos(
-			mi.Conductor); i != "" {
+		if i := oneOrTwoMusicInfos(mi.Conductor); i != "" {
 			s = append(s, i)
 		}
-		s = append(s, fmt.Sprintf("(%s)", gs.Year()))
+		s = append(s, fmt.Sprintf("(%4d)", gs.Year()))
 		return strings.Join(s, " ")
 	}
 	return fmt.Sprintf("%s - %s (%4d)", g.Artist(), g.Name(), g.Year())
