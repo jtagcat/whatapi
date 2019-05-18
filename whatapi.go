@@ -96,7 +96,7 @@ func GroupString(g Group) string {
 		mi := gs.MusicInfo
 		s := []string{}
 		if i := oneOrTwoMusicInfos(mi.Composers); i != "" {
-			s = append(s, i)
+			s = append(s, i, "-")
 		}
 		s = append(s, gs.Name(), "-")
 		if i := oneOrTwoMusicInfos(mi.Artists); i != "" {
