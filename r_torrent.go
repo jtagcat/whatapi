@@ -13,6 +13,11 @@ type GetTorrentStruct struct {
 	Torrent TorrentStruct `json:"torrent"`
 }
 
+type MusicInfoStruct struct {
+	ID   int    `json:"id"`
+	Name string `json:"name"`
+}
+
 type GroupStruct struct {
 	WikiBodyF        string `json:"wikiBody"`
 	WikiImageF       string `json:"wikiImage"`
@@ -27,34 +32,13 @@ type GroupStruct struct {
 	Time             string `json:"time"`
 	VanityHouse      bool   `json:"vanityHouse"`
 	MusicInfo        struct {
-		Composers []struct {
-			ID   int    `json:"id"`
-			Name string `json:"name"`
-		} `json:"composers"`
-		DJ []struct {
-			ID   int    `json:"id"`
-			Name string `json:"name"`
-		} `json:"dj"`
-		Artists []struct {
-			ID   int    `json:"id"`
-			Name string `json:"name"`
-		}
-		With []struct {
-			ID   int    `json:"id"`
-			Name string `json:"name"`
-		} `json:"with"`
-		Conductor []struct {
-			ID   int    `json:"id"`
-			Name string `json:"name"`
-		} `json:"conductor"`
-		RemixedBy []struct {
-			ID   int    `json:"id"`
-			Name string `json:"name"`
-		} `json:"remixedBy"`
-		Producer []struct {
-			ID   int    `json:"id"`
-			Name string `json:"name"`
-		} `json:"producer"`
+		Composers []MusicInfoStruct `json:"composers"`
+		DJ        []MusicInfoStruct `json:"dj"`
+		Artists   []MusicInfoStruct `json:"artists"`
+		With      []MusicInfoStruct `json:"with"`
+		Conductor []MusicInfoStruct `json:"conductor"`
+		RemixedBy []MusicInfoStruct `json:"remixedBy"`
+		Producer  []MusicInfoStruct `json:"producer"`
 	} `json:"musicInfo"`
 	TagsF      []string `json:"tags"`
 	artists    []string
