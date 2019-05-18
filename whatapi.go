@@ -73,7 +73,45 @@ type GroupExt interface {
 	WikiBody() string
 }
 
+func oneOrTwoMusicInfos(mi []MusicInfoStruct) string {
+	switch len(mi) {
+	case 1:
+		return mi[0].Name
+	case 2:
+		return fmt.Sprintf("%s & %s", mi[0].Name, mi[1].Name)
+	default:
+		return ""
+	}
+}
+
 func GroupString(g Group) string {
+	for _, t := range g.Tags() {
+		if t != "classical" {
+			continue
+		}
+		gs, ok := g.(GroupStruct)
+		if !ok {
+			break
+		}
+		mi := gs.MusicInfo
+		s := []string{}
+		if i := oneOrTwoMusicInfos(
+			mi.Composers); i != "" {
+			s = append(s, i)
+		}
+		s = append(s, gs.Name())
+		if i := oneOrTwoMusicInfos(
+			mi.Artists); i != "" {
+			s = append(s, i)
+		}
+		s = append(s, gs.Name())
+		if i := oneOrTwoMusicInfos(
+			mi.Conductor); i != "" {
+			s = append(s, i)
+		}
+		s = append(s, fmt.Sprintf("(%s)", gs.Year()))
+		return strings.Join(s, " ")
+	}
 	return fmt.Sprintf("%s - %s (%4d)", g.Artist(), g.Name(), g.Year())
 }
 
