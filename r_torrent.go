@@ -67,12 +67,6 @@ func (g GroupStruct) Artist() string {
 	if len(g.MusicInfo.Artists) == 1 {
 		return html.UnescapeString(g.MusicInfo.Artists[0].Name)
 	}
-	if len(g.MusicInfo.Composers) > 0 {
-		return html.UnescapeString(g.MusicInfo.Composers[0].Name)
-	}
-	if len(g.MusicInfo.With) > 0 {
-		return html.UnescapeString(g.MusicInfo.With[0].Name)
-	}
 	if len(g.MusicInfo.Artists) == 2 {
 		return fmt.Sprintf("%s & %s",
 			html.UnescapeString(g.MusicInfo.Artists[0].Name),
@@ -80,6 +74,13 @@ func (g GroupStruct) Artist() string {
 	}
 	if len(g.MusicInfo.Artists) > 2 {
 		return "VA"
+	}
+	// only if number of Artists == 0
+	if len(g.MusicInfo.Composers) > 0 {
+		return html.UnescapeString(g.MusicInfo.Composers[0].Name)
+	}
+	if len(g.MusicInfo.With) > 0 {
+		return html.UnescapeString(g.MusicInfo.With[0].Name)
 	}
 	if len(g.MusicInfo.RemixedBy) > 0 {
 		return html.UnescapeString(g.MusicInfo.RemixedBy[0].Name)
