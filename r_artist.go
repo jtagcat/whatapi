@@ -3,7 +3,6 @@ package whatapi
 import (
 	"fmt"
 	"html"
-	"os"
 	"strconv"
 )
 
@@ -84,18 +83,53 @@ func (g ArtistGroupStruct) Name() string {
 func (g ArtistGroupStruct) Artist() string {
 	// this is embarrassing, we're embedded in an Artist object
 	// we should be able to produce the Artist name
-	fmt.Fprint(os.Stderr, "ArtistGroupStruct.Artist() not implemented")
-	os.Exit(-1)
-	if len(g.ArtistsF) > 0 {
-		return g.ArtistsF[0].Name
-	}
-	for i := 1; i <= 7; i++ {
-		s := strconv.Itoa(i)
-		if len(g.ExtendedArtists[s]) > 0 {
-			return g.ExtendedArtists[s][0].Name
+
+	// cut and pasted from r_torrent.go
+	main := g.ExtendedArtists["1"]
+	guest := g.ExtendedArtists["2"]
+	remixer := g.ExtendedArtists["3"]
+	composer := g.ExtendedArtists["4"]
+	conductor := g.ExtendedArtists["5"]
+	dj := g.ExtendedArtists["6"]
+	producer := g.ExtendedArtists["7"]
+	if ReleaseTypeString(g.ReleaseType()) == "Compilation" {
+		if len(dj) == 1 {
+			return html.UnescapeString(dj[0].Name)
+		}
+		if len(dj) == 2 {
+			return fmt.Sprintf("%s & %s",
+				html.UnescapeString(dj[0].Name),
+				html.UnescapeString(dj[1].Name))
 		}
 	}
-	return " (Unknown Artist) "
+	if len(main) == 1 {
+		return html.UnescapeString(main[0].Name)
+	}
+	if len(main) == 2 {
+		return fmt.Sprintf("%s & %s",
+			html.UnescapeString(main[0].Name),
+			html.UnescapeString(main[1].Name))
+	}
+	if len(main) > 2 {
+		return "VA"
+	}
+	// only if number of Artists == 0
+	if len(composer) > 0 {
+		return html.UnescapeString(composer[0].Name)
+	}
+	if len(guest) > 0 {
+		return html.UnescapeString(guest[0].Name)
+	}
+	if len(remixer) > 0 {
+		return html.UnescapeString(remixer[0].Name)
+	}
+	if len(conductor) > 0 {
+		return html.UnescapeString(conductor[0].Name)
+	}
+	if len(producer) > 0 {
+		return html.UnescapeString(producer[0].Name)
+	}
+	return "" // no name!
 }
 
 func (g ArtistGroupStruct) Year() int {
