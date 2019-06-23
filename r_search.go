@@ -124,19 +124,19 @@ func (ts SearchTorrentStruct) FileSize() int64 {
 }
 
 type TorrentSearchResultStruct struct {
-	GroupID       int             `json:"groupId"`
-	GroupName     string          `json:"groupName"`
-	ArtistF       string          `json:"artist"`
-	TagsF         []string        `json:"tags"`
-	Bookmarked    bool            `json:"bookmarked"`
-	VanityHouse   bool            `json:"vanityHouse"`
-	GroupYear     int             `json:"groupYear"`
-	ReleaseTypeF  int             `json:"releasetType,string"`
-	GroupTime     string          `json:"groupTime"`
-	TotalSnatched int             `json:"totalSnatched"`
-	TotalSeeders  int             `json:"totalSeeders"`
-	TotalLeechers int             `json:"totalLeechers"`
-	Torrents      []TorrentStruct `json:"torrents"`
+	GroupID       int                   `json:"groupId"`
+	GroupName     string                `json:"groupName"`
+	ArtistF       string                `json:"artist"`
+	TagsF         []string              `json:"tags"`
+	Bookmarked    bool                  `json:"bookmarked"`
+	VanityHouse   bool                  `json:"vanityHouse"`
+	GroupYear     int                   `json:"groupYear"`
+	ReleaseTypeF  int                   `json:"releasetType,string"`
+	GroupTime     string                `json:"groupTime"`
+	TotalSnatched int                   `json:"totalSnatched"`
+	TotalSeeders  int                   `json:"totalSeeders"`
+	TotalLeechers int                   `json:"totalLeechers"`
+	Torrents      []SearchTorrentStruct `json:"torrents"`
 }
 
 func (ts TorrentSearchResultStruct) ID() int {
