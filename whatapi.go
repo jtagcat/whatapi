@@ -11,6 +11,7 @@ import (
 	"net/url"
 	"strconv"
 	"strings"
+	"time"
 )
 
 //NewWhatAPI creates a new client for the What.CD API using the provided URL.
@@ -33,6 +34,16 @@ func NewWhatAPI(url, agent string) (WhatAPI, error) {
 
 func NewWhatAPICached(url, agent string, db *sql.DB) (WhatAPI, error) {
 	cookieJar, err := cookiejar.New(nil)
+	if err != nil {
+		return nil, err
+	}
+	_, err = db.Exec(`
+CREATE TABLE IF NOT EXIST urlcache (
+    requesturl TEXT UNIQUE PRIMARY KEY NOT NULL,
+    body       TEXT NOT NULL,
+    timestamp  DATETIME NOT NULL
+);
+`)
 	if err != nil {
 		return nil, err
 	}
@@ -255,7 +266,8 @@ func (w *WhatAPIStruct) updateCache(requestURL string, body []byte) error {
 		return nil
 	}
 	res, err := w.db.Exec(
-		"INSERT INTO cache (requesturl, body) VALUES(?,?)",
+		"REPLACE INTO urlcache (requesturl, body, timestamp) "+
+			"VALUES(?,?, datetime('now'))",
 		requestURL, body)
 	if err != nil {
 		return err
@@ -271,14 +283,20 @@ func (w *WhatAPIStruct) updateCache(requestURL string, body []byte) error {
 	return nil
 }
 
+var maxCacheAge = 30 * 24 * time.Hour
+
 func (w *WhatAPIStruct) cachedResponse(requestURL string) (body []byte, err error) {
 	if w.db != nil {
 		return nil, nil
 	}
 
+	var datetime time.Time
 	err = w.db.QueryRow(
-		"SELECT body FROM cache WHERE requesturl = ?", requestURL).
-		Scan(&body)
+		"SELECT body, datetime FROM urlcache WHERE requesturl = ?", requestURL).
+		Scan(&body, &datetime)
+	if time.Since(datetime) > maxCacheAge {
+		return nil, sql.ErrNoRows
+	}
 	return body, err
 }
 
