@@ -38,7 +38,7 @@ func NewWhatAPICached(url, agent string, db *sql.DB) (WhatAPI, error) {
 		return nil, err
 	}
 	_, err = db.Exec(`
-CREATE TABLE IF NOT EXIST urlcache (
+CREATE TABLE IF NOT EXISTS urlcache (
     requesturl TEXT UNIQUE PRIMARY KEY NOT NULL,
     body       TEXT NOT NULL,
     timestamp  DATETIME NOT NULL
