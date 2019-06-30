@@ -2,6 +2,7 @@
 package whatapi
 
 import (
+	"database/sql"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -22,6 +23,24 @@ func NewWhatAPI(url, agent string) (WhatAPI, error) {
 		baseURL:   url,
 		userAgent: agent,
 		client:    &http.Client{Jar: cookieJar},
+		db:        nil,
+	}, nil
+}
+
+// NewWhatAPICached creates a new client for the What.CD API using the
+// provided URL. It is backed by a SQL db cache and will return
+// cached entries if any.
+
+func NewWhatAPICached(url, agent string, db *sql.DB) (WhatAPI, error) {
+	cookieJar, err := cookiejar.New(nil)
+	if err != nil {
+		return nil, err
+	}
+	return &WhatAPIStruct{
+		baseURL:   url,
+		userAgent: agent,
+		client:    &http.Client{Jar: cookieJar},
+		db:        db,
 	}, nil
 }
 
@@ -206,31 +225,83 @@ type WhatAPIStruct struct {
 	authkey   string
 	passkey   string
 	loggedIn  bool
+	db        *sql.DB
 }
 
-//GetJSON sends a HTTP GET request to the API and decodes the JSON response into responseObj.
-func (w *WhatAPIStruct) GetJSON(requestURL string, responseObj interface{}) error {
-	if !w.loggedIn {
-		return errRequestFailedLogin
-	}
-
+func (w *WhatAPIStruct) readThrough(requestURL string) ([]byte, error) {
 	req, err := http.NewRequest("GET", requestURL, nil)
 	req.Header.Set("User-Agent", w.userAgent)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	resp, err := w.client.Do(req)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	defer resp.Body.Close()
 	if resp.StatusCode != 200 {
-		return errRequestFailedReason("Status Code " + resp.Status)
+		return nil, errRequestFailedReason("Status Code " + resp.Status)
 	}
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
+		return nil, err
+	}
+	return body, nil
+}
+
+func (w *WhatAPIStruct) updateCache(requestURL string, body []byte) error {
+	if w.db == nil {
+		return nil
+	}
+	res, err := w.db.Exec(
+		"INSERT INTO cache (requesturl, body) VALUES(?,?)",
+		requestURL, body)
+	if err != nil {
 		return err
+	}
+	rows, err := res.RowsAffected()
+	if err != nil {
+		return err
+	}
+	if rows != 1 {
+		return fmt.Errorf(
+			"INSERT affected %d rows, expected 1", rows)
+	}
+	return nil
+}
+
+func (w *WhatAPIStruct) cachedResponse(requestURL string) (body []byte, err error) {
+	if w.db != nil {
+		return nil, nil
+	}
+
+	err = w.db.QueryRow(
+		"SELECT body FROM cache WHERE requesturl = ?", requestURL).
+		Scan(&body)
+	return body, err
+}
+
+//GetJSON sends a HTTP GET request to the API and decodes the JSON response into responseObj.
+func (w *WhatAPIStruct) GetJSON(requestURL string, responseObj interface{}) (err error) {
+	if !w.loggedIn {
+		return errRequestFailedLogin
+	}
+
+	var body []byte
+	body, err = w.cachedResponse(requestURL)
+	switch {
+	case w.db == nil || err == sql.ErrNoRows:
+		if body, err = w.readThrough(requestURL); err != nil {
+			return err
+		}
+		if err = w.updateCache(requestURL, body); err != nil {
+			return err
+		}
+	case err != nil:
+		return err
+	default:
+		break
 	}
 
 	var st GenericResponse
