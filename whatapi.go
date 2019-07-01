@@ -286,7 +286,7 @@ func (w *WhatAPIStruct) updateCache(requestURL string, body []byte) error {
 var maxCacheAge = 30 * 24 * time.Hour
 
 func (w *WhatAPIStruct) cachedResponse(requestURL string) (body []byte, err error) {
-	if w.db != nil {
+	if w.db == nil {
 		return nil, nil
 	}
 
@@ -294,7 +294,10 @@ func (w *WhatAPIStruct) cachedResponse(requestURL string) (body []byte, err erro
 	err = w.db.QueryRow(
 		"SELECT body, datetime FROM urlcache WHERE requesturl = ?", requestURL).
 		Scan(&body, &datetime)
-	if len(body) == 0 || time.Since(datetime) > maxCacheAge {
+	if err != nil {
+		return nil, err
+	}
+	if body == nil || len(body) == 0 || time.Since(datetime) > maxCacheAge {
 		return nil, sql.ErrNoRows
 	}
 	return body, err
@@ -306,8 +309,7 @@ func (w *WhatAPIStruct) GetJSON(requestURL string, responseObj interface{}) (err
 		return errRequestFailedLogin
 	}
 
-	var body []byte
-	body, err = w.cachedResponse(requestURL)
+	body, err := w.cachedResponse(requestURL)
 	switch {
 	case w.db == nil || err == sql.ErrNoRows:
 		if body, err = w.readThrough(requestURL); err != nil {
