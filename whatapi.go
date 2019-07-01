@@ -31,7 +31,6 @@ func NewWhatAPI(url, agent string) (WhatAPI, error) {
 // NewWhatAPICached creates a new client for the What.CD API using the
 // provided URL. It is backed by a SQL db cache and will return
 // cached entries if any.
-
 func NewWhatAPICached(url, agent string, db *sql.DB) (WhatAPI, error) {
 	cookieJar, err := cookiejar.New(nil)
 	if err != nil {
@@ -386,7 +385,11 @@ func (w *WhatAPIStruct) Login(username, password string) error {
 		return errLoginFailed
 	}
 	w.loggedIn = true
+	// don't cache login results
+	db := w.db
+	w.db = nil
 	account, err := w.GetAccount()
+	w.db = db
 	if err != nil {
 		return err
 	}
