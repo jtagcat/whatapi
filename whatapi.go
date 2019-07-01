@@ -294,7 +294,7 @@ func (w *WhatAPIStruct) cachedResponse(requestURL string) (body []byte, err erro
 	err = w.db.QueryRow(
 		"SELECT body, datetime FROM urlcache WHERE requesturl = ?", requestURL).
 		Scan(&body, &datetime)
-	if time.Since(datetime) > maxCacheAge {
+	if len(body) == 0 || time.Since(datetime) > maxCacheAge {
 		return nil, sql.ErrNoRows
 	}
 	return body, err
