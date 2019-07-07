@@ -187,7 +187,7 @@ func TorrentString(t Torrent) string {
 	}
 	number := ""
 	if r, ok := t.(TorrentCatalogueNumber); ok {
-		label = r.RemasterCatalogueNumber()
+		number = r.RemasterCatalogueNumber()
 	}
 	s = fmt.Sprintf("%s{(%4d) %s/%s/%s}",
 		s, t.RemasterYear(), label,
