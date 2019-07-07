@@ -346,7 +346,7 @@ type ArtistTorrentStruct struct {
 	Seeders              int    `json:"seeders"`
 	Snatched             int    `json:"snatched"`
 	Time                 string `json:"time"`
-	HasFile              int    `json:"haFile"`
+	HasFile              int    `json:"hasFile"`
 }
 
 func (t ArtistTorrentStruct) ID() int {
