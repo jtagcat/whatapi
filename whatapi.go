@@ -583,7 +583,9 @@ func (w *WhatAPIStruct) GetTorrentBookmarks() (TorrentBookmarks, error) {
 //GetArtist retrieves artist information using the provided artist id and parameters.
 func (w *WhatAPIStruct) GetArtist(id int, params url.Values) (Artist, error) {
 	artist := ArtistResponse{}
-	params.Set("id", strconv.Itoa(id))
+	if _, ok := params["artistname"]; !ok || id != 0 {
+		params.Set("id", strconv.Itoa(id))
+	}
 	requestURL, err := buildURL(w.baseURL, "ajax.php", "artist", params)
 	if err != nil {
 		return artist.Response, err
@@ -613,7 +615,9 @@ func (w *WhatAPIStruct) GetRequest(id int, params url.Values) (Request, error) {
 //GetTorrent retrieves torrent information using the provided torrent id and parameters.
 func (w *WhatAPIStruct) GetTorrent(id int, params url.Values) (GetTorrentStruct, error) {
 	torrent := TorrentResponse{}
-	params.Set("id", strconv.Itoa(id))
+	if _, ok := params["hash"]; !ok || id != 0 {
+		params.Set("id", strconv.Itoa(id))
+	}
 	requestURL, err := buildURL(w.baseURL, "ajax.php", "torrent", params)
 	if err != nil {
 		return torrent.Response, err
