@@ -7,17 +7,17 @@ import (
 )
 
 type ArtistGroupStruct struct {
-	GroupID              int                   `json:"groupId"`
-	GroupYear            int                   `json:"groupYear"`
-	GroupRecordLabel     string                `json:"groupRecordLabel"`
-	GroupCatalogueNumber string                `json:"groupCatalogueNumber"`
-	TagsF                []string              `json:"tags"`
-	ReleaseTypeF         int                   `json:"releaseType"`
-	GroupVanityHouse     bool                  `json:"groupVanityHouse"`
-	HasBookmarked        bool                  `json:"hasBookmarked"`
-	Torrent              []ArtistTorrentStruct `json:"torrent"`
-	GroupName            string                `json:"groupName"`
-	ArtistsF             []struct {
+	GroupID               int                   `json:"groupId"`
+	GroupYearF            int                   `json:"groupYear"`
+	GroupRecordLabelF     string                `json:"groupRecordLabel"`
+	GroupCatalogueNumberF string                `json:"groupCatalogueNumber"`
+	TagsF                 []string              `json:"tags"`
+	ReleaseTypeF          int                   `json:"releaseType"`
+	GroupVanityHouse      bool                  `json:"groupVanityHouse"`
+	HasBookmarked         bool                  `json:"hasBookmarked"`
+	Torrent               []ArtistTorrentStruct `json:"torrent"`
+	GroupNameF            string                `json:"groupName"`
+	ArtistsF              []struct {
 		ID      int    `json:"id"`
 		Name    string `json:"name"`
 		AliasID int    `json:"aliasid"`
@@ -77,7 +77,7 @@ func (g ArtistGroupStruct) ID() int {
 }
 
 func (g ArtistGroupStruct) Name() string {
-	return html.UnescapeString(g.GroupName)
+	return html.UnescapeString(g.GroupNameF)
 }
 
 func (g ArtistGroupStruct) Artist() string {
@@ -133,7 +133,7 @@ func (g ArtistGroupStruct) Artist() string {
 }
 
 func (g ArtistGroupStruct) Year() int {
-	return g.GroupYear
+	return g.GroupYearF
 }
 
 func (g *ArtistGroupStruct) makeArtistsImportance() {
@@ -162,15 +162,19 @@ func (g ArtistGroupStruct) Importance() []int {
 }
 
 func (g ArtistGroupStruct) RecordLabel() string {
-	return g.GroupRecordLabel
+	return g.GroupRecordLabelF
 }
 
 func (g ArtistGroupStruct) CatalogueNumber() string {
-	return g.GroupCatalogueNumber
+	return g.GroupCatalogueNumberF
 }
 
 func (g ArtistGroupStruct) ReleaseType() int {
 	return g.ReleaseTypeF
+}
+
+func (g ArtistGroupStruct) GroupName() string {
+	return html.UnescapeString(g.GroupNameF)
 }
 
 func (g ArtistGroupStruct) Tags() []string {
