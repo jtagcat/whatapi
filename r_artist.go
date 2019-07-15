@@ -13,28 +13,30 @@ type ArtistGroupArtist struct {
 	AliasID int    `json:"aliasid"`
 }
 
-func (aga *ArtistGroupArtist) UnmarshallJSON(b []byte) error {
+type ExtendedArtistMap map[string][]ArtistGroupArtist
+
+func (m *ExtendedArtistMap) UnmarshallJSON(b []byte) error {
 	var f bool // orpheus sometimes returns "false" for these
 	if err := json.Unmarshal(b, &f); err == nil {
-		*aga = ArtistGroupArtist{}
+		*m = ExtendedArtistMap{}
 		return nil
 	}
-	return json.Unmarshal(b, aga)
+	return json.Unmarshal(b, m)
 }
 
 type ArtistGroupStruct struct {
-	GroupID               int                            `json:"groupId"`
-	GroupYearF            int                            `json:"groupYear"`
-	GroupRecordLabelF     string                         `json:"groupRecordLabel"`
-	GroupCatalogueNumberF string                         `json:"groupCatalogueNumber"`
-	TagsF                 []string                       `json:"tags"`
-	ReleaseTypeF          int                            `json:"releaseType"`
-	GroupVanityHouse      bool                           `json:"groupVanityHouse"`
-	HasBookmarked         bool                           `json:"hasBookmarked"`
-	Torrent               []ArtistTorrentStruct          `json:"torrent"`
-	GroupNameF            string                         `json:"groupName"`
-	ArtistsF              []ArtistGroupArtist            `json:"artists"`
-	ExtendedArtists       map[string][]ArtistGroupArtist `json:"extendedArtists"`
+	GroupID               int                   `json:"groupId"`
+	GroupYearF            int                   `json:"groupYear"`
+	GroupRecordLabelF     string                `json:"groupRecordLabel"`
+	GroupCatalogueNumberF string                `json:"groupCatalogueNumber"`
+	TagsF                 []string              `json:"tags"`
+	ReleaseTypeF          int                   `json:"releaseType"`
+	GroupVanityHouse      bool                  `json:"groupVanityHouse"`
+	HasBookmarked         bool                  `json:"hasBookmarked"`
+	Torrent               []ArtistTorrentStruct `json:"torrent"`
+	GroupNameF            string                `json:"groupName"`
+	ArtistsF              []ArtistGroupArtist   `json:"artists"`
+	ExtendedArtists       ExtendedArtistMap     `json:"extendedArtists"`
 	artists               []string
 	importance            []int
 }
