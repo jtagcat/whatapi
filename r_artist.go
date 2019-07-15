@@ -1,34 +1,42 @@
 package whatapi
 
 import (
+	"encoding/json"
 	"fmt"
 	"html"
 	"strconv"
 )
 
+type ArtistGroupArtist struct {
+	ID      int    `json:"id"`
+	Name    string `json:"name"`
+	AliasID int    `json:"aliasid"`
+}
+
+func (aga *ArtistGroupArtist) UnmarshallJSON(b []byte) error {
+	var f bool // orpheus sometimes returns "false" for these
+	if err := json.Unmarshal(b, &f); err == nil {
+		*aga = ArtistGroupArtist{}
+		return nil
+	}
+	return json.Unmarshal(b, aga)
+}
+
 type ArtistGroupStruct struct {
-	GroupID               int                   `json:"groupId"`
-	GroupYearF            int                   `json:"groupYear"`
-	GroupRecordLabelF     string                `json:"groupRecordLabel"`
-	GroupCatalogueNumberF string                `json:"groupCatalogueNumber"`
-	TagsF                 []string              `json:"tags"`
-	ReleaseTypeF          int                   `json:"releaseType"`
-	GroupVanityHouse      bool                  `json:"groupVanityHouse"`
-	HasBookmarked         bool                  `json:"hasBookmarked"`
-	Torrent               []ArtistTorrentStruct `json:"torrent"`
-	GroupNameF            string                `json:"groupName"`
-	ArtistsF              []struct {
-		ID      int    `json:"id"`
-		Name    string `json:"name"`
-		AliasID int    `json:"aliasid"`
-	} `json:"artists"`
-	ExtendedArtists map[string][]struct {
-		ID      int    `json:"id"`
-		Name    string `json:"name"`
-		AliasID int    `json:"aliasid"`
-	} `json:"extendedArtists"`
-	artists    []string
-	importance []int
+	GroupID               int                            `json:"groupId"`
+	GroupYearF            int                            `json:"groupYear"`
+	GroupRecordLabelF     string                         `json:"groupRecordLabel"`
+	GroupCatalogueNumberF string                         `json:"groupCatalogueNumber"`
+	TagsF                 []string                       `json:"tags"`
+	ReleaseTypeF          int                            `json:"releaseType"`
+	GroupVanityHouse      bool                           `json:"groupVanityHouse"`
+	HasBookmarked         bool                           `json:"hasBookmarked"`
+	Torrent               []ArtistTorrentStruct          `json:"torrent"`
+	GroupNameF            string                         `json:"groupName"`
+	ArtistsF              []ArtistGroupArtist            `json:"artists"`
+	ExtendedArtists       map[string][]ArtistGroupArtist `json:"extendedArtists"`
+	artists               []string
+	importance            []int
 }
 
 type Artist struct {
