@@ -501,11 +501,15 @@ func (t TorrentStruct) Files() ([]FileStruct, error) {
 
 // FileStruct represents what we know about the files in a torrent
 type FileStruct struct {
-	Name string
-	Size int64
+	NameF string
+	Size  int64
 }
 
-// Files returns a slice of FileStruts for a torrent
+func (fs FileStruct) Name() string {
+	return html.UnescapeString(fs.NameF)
+}
+
+// ParseFileList returns a slice of FileStruts for a torrent
 func (t TorrentStruct) ParseFileList() ([]FileStruct, error) {
 	if t.FileList == "" {
 		return []FileStruct{}, nil
