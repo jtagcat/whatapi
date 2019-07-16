@@ -1,7 +1,6 @@
 package whatapi
 
 import (
-	"encoding/json"
 	"fmt"
 	"html"
 	"strconv"
@@ -14,15 +13,6 @@ type ArtistGroupArtist struct {
 }
 
 type ExtendedArtistMap map[string][]ArtistGroupArtist
-
-func (m *ExtendedArtistMap) UnmarshallJSON(b []byte) error {
-	var f bool // orpheus sometimes returns "false" for these
-	if err := json.Unmarshal(b, &f); err == nil {
-		*m = ExtendedArtistMap{}
-		return nil
-	}
-	return json.Unmarshal(b, m)
-}
 
 type ArtistGroupStruct struct {
 	GroupID               int                   `json:"groupId"`

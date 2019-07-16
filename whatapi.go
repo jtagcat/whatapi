@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"net/http/cookiejar"
 	"net/url"
+	"regexp"
 	"strconv"
 	"strings"
 	"time"
@@ -302,6 +303,8 @@ func (w *WhatAPIStruct) cachedResponse(requestURL string) (body []byte, err erro
 	return body, err
 }
 
+var re = regexp.MustCompile(`"extendedArtists": false`)
+
 //GetJSON sends a HTTP GET request to the API and decodes the JSON response into responseObj.
 func (w *WhatAPIStruct) GetJSON(requestURL string, responseObj interface{}) (err error) {
 	if !w.loggedIn {
@@ -330,6 +333,14 @@ func (w *WhatAPIStruct) GetJSON(requestURL string, responseObj interface{}) (err
 
 	if err := checkResponseStatus(st.Status, st.Error); err != nil {
 		return err
+	}
+	switch ro := responseObj.(type) {
+	case *Artist: // hack around orpheus bug in get artist
+		err := json.Unmarshal(body, ro)
+		if err != nil {
+			body = re.ReplaceAll(body, []byte(`"extendedArtists": {}`))
+		}
+	default:
 	}
 	return json.Unmarshal(body, responseObj)
 }
