@@ -334,12 +334,11 @@ func (w *WhatAPIStruct) GetJSON(requestURL string, responseObj interface{}) (err
 	if err := checkResponseStatus(st.Status, st.Error); err != nil {
 		return err
 	}
-	fmt.Printf("get type %T\n", responseObj)
 	switch ro := responseObj.(type) {
 	case *ArtistResponse: // hack around orpheus bug in get artist
 		err := json.Unmarshal(body, ro)
 		if err != nil {
-			body = re.ReplaceAll(body, []byte(`"extendedArtists": {}`))
+			body = re.ReplaceAll(body, []byte(`"extendedArtists":{}`))
 		}
 	default:
 	}
