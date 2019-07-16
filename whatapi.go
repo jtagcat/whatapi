@@ -303,7 +303,7 @@ func (w *WhatAPIStruct) cachedResponse(requestURL string) (body []byte, err erro
 	return body, err
 }
 
-var re = regexp.MustCompile(`"extendedArtists": false`)
+var re = regexp.MustCompile(`"extendedArtists":false`)
 
 //GetJSON sends a HTTP GET request to the API and decodes the JSON response into responseObj.
 func (w *WhatAPIStruct) GetJSON(requestURL string, responseObj interface{}) (err error) {
