@@ -18,31 +18,33 @@ type MusicInfoStruct struct {
 	Name string `json:"name"`
 }
 
+type MusicInfo struct {
+	Composers []MusicInfoStruct `json:"composers"`
+	DJ        []MusicInfoStruct `json:"dj"`
+	Artists   []MusicInfoStruct `json:"artists"`
+	With      []MusicInfoStruct `json:"with"`
+	Conductor []MusicInfoStruct `json:"conductor"`
+	RemixedBy []MusicInfoStruct `json:"remixedBy"`
+	Producer  []MusicInfoStruct `json:"producer"`
+}
+
 type GroupStruct struct {
-	WikiBodyF        string `json:"wikiBody"`
-	WikiImageF       string `json:"wikiImage"`
-	IDF              int    `json:"id"`
-	NameF            string `json:"name"`
-	YearF            int    `json:"year"`
-	RecordLabelF     string `json:"recordLabel"`
-	CatalogueNumberF string `json:"catalogueNumber"`
-	ReleaseTypeF     int    `json:"releaseType"`
-	CategoryID       int    `json:"caregoryId"`
-	CategoryName     string `json:"categoryName"`
-	Time             string `json:"time"`
-	VanityHouse      bool   `json:"vanityHouse"`
-	MusicInfo        struct {
-		Composers []MusicInfoStruct `json:"composers"`
-		DJ        []MusicInfoStruct `json:"dj"`
-		Artists   []MusicInfoStruct `json:"artists"`
-		With      []MusicInfoStruct `json:"with"`
-		Conductor []MusicInfoStruct `json:"conductor"`
-		RemixedBy []MusicInfoStruct `json:"remixedBy"`
-		Producer  []MusicInfoStruct `json:"producer"`
-	} `json:"musicInfo"`
-	TagsF      []string `json:"tags"`
-	artists    []string
-	importance []int
+	WikiBodyF        string    `json:"wikiBody"`
+	WikiImageF       string    `json:"wikiImage"`
+	IDF              int       `json:"id"`
+	NameF            string    `json:"name"`
+	YearF            int       `json:"year"`
+	RecordLabelF     string    `json:"recordLabel"`
+	CatalogueNumberF string    `json:"catalogueNumber"`
+	ReleaseTypeF     int       `json:"releaseType"`
+	CategoryID       int       `json:"caregoryId"`
+	CategoryName     string    `json:"categoryName"`
+	Time             string    `json:"time"`
+	VanityHouse      bool      `json:"vanityHouse"`
+	MusicInfo        MusicInfo `json:"musicInfo"`
+	TagsF            []string  `json:"tags"`
+	artists          []string
+	importance       []int
 }
 
 func (g GroupStruct) ID() int {
