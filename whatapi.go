@@ -2,6 +2,7 @@
 package whatapi
 
 import (
+	"bytes"
 	"database/sql"
 	"encoding/json"
 	"fmt"
@@ -9,7 +10,6 @@ import (
 	"net/http"
 	"net/http/cookiejar"
 	"net/url"
-	"regexp"
 	"strconv"
 	"strings"
 	"time"
@@ -304,8 +304,6 @@ func (w *WhatAPIStruct) cachedResponse(requestURL string) (body []byte, err erro
 	return body, err
 }
 
-var re = regexp.MustCompile(`"extendedArtists":false`)
-
 //GetJSON sends a HTTP GET request to the API and decodes the JSON response into responseObj.
 func (w *WhatAPIStruct) GetJSON(requestURL string, responseObj interface{}) (err error) {
 	if !w.loggedIn {
@@ -339,7 +337,18 @@ func (w *WhatAPIStruct) GetJSON(requestURL string, responseObj interface{}) (err
 	case *ArtistResponse: // hack around orpheus bug in get artist
 		err := json.Unmarshal(body, ro)
 		if err != nil {
-			body = re.ReplaceAll(body, []byte(`"extendedArtists":{}`))
+			body = bytes.ReplaceAll(
+				body,
+				[]byte(`"extendedArtists":false`),
+				[]byte(`"extendedArtists":{}`))
+		}
+	case *TopTenTorrentsResponse: // hack around orpheus bug in top 10
+		err := json.Unmarshal(body, ro)
+		if err != nil {
+			body = bytes.ReplaceAll(
+				body,
+				[]byte(`"artist":false`),
+				[]byte(`"artist":""`))
 		}
 	default:
 	}
