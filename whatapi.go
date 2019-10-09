@@ -26,13 +26,14 @@ func NewWhatAPI(url, agent string) (WhatAPI, error) {
 		userAgent: agent,
 		client:    &http.Client{Jar: cookieJar},
 		db:        nil,
+		cacheFor:  0,
 	}, nil
 }
 
 // NewWhatAPICached creates a new client for the What.CD API using the
 // provided URL. It is backed by a SQL db cache and will return
 // cached entries if any.
-func NewWhatAPICached(url, agent string, db *sql.DB) (WhatAPI, error) {
+func NewWhatAPICached(url, agent string, db *sql.DB, cacheFor time.Duration) (WhatAPI, error) {
 	cookieJar, err := cookiejar.New(nil)
 	if err != nil {
 		return nil, err
@@ -52,6 +53,7 @@ CREATE TABLE IF NOT EXISTS urlcache (
 		userAgent: agent,
 		client:    &http.Client{Jar: cookieJar},
 		db:        db,
+		cacheFor:  cacheFor,
 	}, nil
 }
 
@@ -237,6 +239,7 @@ type WhatAPIStruct struct {
 	passkey   string
 	loggedIn  bool
 	db        *sql.DB
+	cacheFor  time.Duration
 }
 
 func (w *WhatAPIStruct) readThrough(requestURL string) ([]byte, error) {
@@ -283,8 +286,6 @@ func (w *WhatAPIStruct) updateCache(requestURL string, body []byte) error {
 	return nil
 }
 
-var maxCacheAge = 30 * 24 * time.Hour
-
 func (w *WhatAPIStruct) cachedResponse(requestURL string) (body []byte, err error) {
 	if w.db == nil {
 		return nil, nil
@@ -297,7 +298,7 @@ func (w *WhatAPIStruct) cachedResponse(requestURL string) (body []byte, err erro
 	if err != nil {
 		return nil, err
 	}
-	if body == nil || len(body) == 0 || time.Since(timestamp) > maxCacheAge {
+	if body == nil || len(body) == 0 || time.Since(timestamp) > w.cacheFor {
 		return nil, sql.ErrNoRows
 	}
 	return body, err
