@@ -7,23 +7,28 @@ import (
 )
 
 func TestFiles(t *testing.T) {
-	f, err := whatapi.TorrentStruct{}.Files()
+	to := whatapi.TorrentStruct{}
+	f, err := to.Files()
 	if f == nil || len(f) != 0 || err != nil {
 		t.Errorf("expected Files of null TorrentStruct to return empty list, got %v, %s", f, err)
 	}
-	f, err = whatapi.TorrentStruct{FileList: ""}.Files()
+	to = whatapi.TorrentStruct{FileList: ""}
+	f, err = to.Files()
 	if f == nil || len(f) != 0 || err != nil {
 		t.Errorf("expected Files  of empty file list to return empty list, got %v, %s", f, err)
 	}
-	f, err = whatapi.TorrentStruct{FileList: "bad"}.Files()
+	to = whatapi.TorrentStruct{FileList: "bad"}
+	f, err = to.Files()
 	if err == nil {
 		t.Errorf("expected Files of bad file list to return error, got %v, %s", f, err)
 	}
-	f, err = whatapi.TorrentStruct{FileList: "|||a{{{1}}}"}.Files()
+	to = whatapi.TorrentStruct{FileList: "|||a{{{1}}}"}
+	f, err = to.Files()
 	if err == nil {
 		t.Errorf("expected Files of bad file list to return error, got %v, %s", f, err)
 	}
-	f, err = whatapi.TorrentStruct{FileList: "{{{}}}"}.Files()
+	to = whatapi.TorrentStruct{FileList: "{{{}}}"}
+	f, err = to.Files()
 	if err == nil {
 		t.Errorf("expected Files of bad file list to return error, got %v, %s", f, err)
 	}
@@ -35,7 +40,7 @@ func TestFiles(t *testing.T) {
 		{Name: "bbb", Size: 456},
 		{Name: "ccc", Size: 789},
 	}
-	to := whatapi.TorrentStruct{
+	to = whatapi.TorrentStruct{
 		FileList: "aaa{{{123}}}|||bbb{{{456}}}|||ccc{{{789}}}",
 	}
 	f, err = to.Files()

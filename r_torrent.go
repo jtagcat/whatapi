@@ -489,7 +489,7 @@ func (t TorrentStruct) FileCount() int {
 func (t TorrentStruct) FileSize() int64 {
 	return t.Size
 }
-func (t TorrentStruct) Files() ([]FileStruct, error) {
+func (t *TorrentStruct) Files() ([]FileStruct, error) {
 	if t.files != nil {
 		return t.files, nil
 	}
