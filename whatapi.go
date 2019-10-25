@@ -653,7 +653,9 @@ func (w *WhatAPIStruct) GetTorrent(id int, params url.Values) (GetTorrentStruct,
 //GetTorrentGroup retrieves torrent group information using the provided torrent group id and parameters.
 func (w *WhatAPIStruct) GetTorrentGroup(id int, params url.Values) (TorrentGroup, error) {
 	torrentGroup := TorrentGroupResponse{}
-	params.Set("id", strconv.Itoa(id))
+	if _, ok := params["hash"]; !ok || id != 0 {
+		params.Set("id", strconv.Itoa(id))
+	}
 	requestURL, err := buildURL(w.baseURL, "ajax.php", "torrentgroup", params)
 	if err != nil {
 		return torrentGroup.Response, err
