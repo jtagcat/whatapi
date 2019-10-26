@@ -25,7 +25,7 @@ type TopTenResult struct {
 	HasLog        bool     `json:"hasLog"`
 	HasCue        bool     `json:"hasCue"`
 	HasLogDB      bool     `json:"hasLogDB"`
-	LogScore      int      `json:"logsScore"`
+	LogScore      string   `json:"logsScore"`
 	LogChecksum   string   `json:"logChecksum"`
 	Media         string   `json:"media"`
 	Scene         bool     `json:"scene"`
