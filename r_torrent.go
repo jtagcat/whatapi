@@ -41,6 +41,7 @@ type GroupStruct struct {
 	CategoryName     string    `json:"categoryName"`
 	Time             string    `json:"time"`
 	VanityHouse      bool      `json:"vanityHouse"`
+	IsBookmarked     bool      `json:"isBookmarked"`
 	MusicInfo        MusicInfo `json:"musicInfo"`
 	TagsF            []string  `json:"tags"`
 	artists          []string
