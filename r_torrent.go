@@ -37,7 +37,7 @@ type GroupStruct struct {
 	RecordLabelF     string    `json:"recordLabel"`
 	CatalogueNumberF string    `json:"catalogueNumber"`
 	ReleaseTypeF     int       `json:"releaseType"`
-	CategoryID       int       `json:"caregoryId"`
+	CategoryID       int       `json:"categoryId"`
 	CategoryName     string    `json:"categoryName"`
 	Time             string    `json:"time"`
 	VanityHouse      bool      `json:"vanityHouse"`
