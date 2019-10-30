@@ -6,13 +6,13 @@ import (
 	"strconv"
 )
 
-type ArtistGroupArtist struct {
+type ArtistAlias struct {
 	ID      int    `json:"id"`
 	Name    string `json:"name"`
 	AliasID int    `json:"aliasid"`
 }
 
-type ExtendedArtistMap map[string][]ArtistGroupArtist
+type ExtendedArtistMap map[string][]ArtistAlias
 
 type ArtistGroupStruct struct {
 	GroupID               int                   `json:"groupId"`
@@ -25,7 +25,7 @@ type ArtistGroupStruct struct {
 	HasBookmarked         bool                  `json:"hasBookmarked"`
 	Torrent               []ArtistTorrentStruct `json:"torrent"`
 	GroupNameF            string                `json:"groupName"`
-	ArtistsF              []ArtistGroupArtist   `json:"artists"`
+	ArtistsF              []ArtistAlias         `json:"artists"`
 	ExtendedArtists       ExtendedArtistMap     `json:"extendedArtists"`
 	artists               []string
 	importance            []int

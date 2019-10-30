@@ -1,10 +1,7 @@
 package whatapi
 
 type ArtistBookmarks struct {
-	Artists []struct {
-		ArtistID   int    `json:"artistId"`
-		ArtistName string `json:"artistName"`
-	} `json:"artists"`
+	Artists []ArtistID `json:"artists"`
 }
 
 type TorrentBookmarks struct {

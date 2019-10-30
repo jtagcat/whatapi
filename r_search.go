@@ -4,71 +4,69 @@ import (
 	"html"
 )
 
+type ArtistID struct {
+	ID   string `json:"id"`
+	Name string `json:"name"`
+}
+
 type RequestsSearch struct {
 	CurrentPage int `json:"currentPage"`
 	Pages       int `json:"pages"`
 	Results     []struct {
-		RequestID     int    `json:"requestId"`
-		RequestorID   int    `json:"requestorId"`
-		ReqyestorName string `json:"requestorName"`
-		TimeAdded     string `json:"timeAdded"`
-		LastVote      string `json:"lastVote"`
-		VoteCount     int    `json:"voteCount"`
-		Bounty        int64  `json:"bounty"`
-		CategoryID    int    `json:"categoryId"`
-		CategoryName  string `json:"categoryName"`
-		Artists       [][]struct {
-			ID   string `json:"id"`
-			Name string `json:"name"`
-		} `json:"artists"`
-		Title           string `json:"title"`
-		Year            int    `json:"year"`
-		Image           string `json:"image"`
-		Description     string `json:"description"`
-		CatalogueNumber string `json:"catalogueNumber"`
-		ReleaseType     string `json:"releaseType"`
-		BitrateList     string `json:"bitrateList"`
-		FormatList      string `json:"formatList"`
-		MediaList       string `json:"mediaList"`
-		LogCue          string `json:"logCue"`
-		IsFilled        bool   `json:"isFilled"`
-		FillerID        int    `json:"fillerId"`
-		FillerName      string `json:"fillerName"`
-		TorrentID       int    `json:"torrentId"`
-		TimeFilled      string `json:"timeFilled"`
+		RequestID       int          `json:"requestId"`
+		RequestorID     int          `json:"requestorId"`
+		ReqyestorName   string       `json:"requestorName"`
+		TimeAdded       string       `json:"timeAdded"`
+		LastVote        string       `json:"lastVote"`
+		VoteCount       int          `json:"voteCount"`
+		Bounty          int64        `json:"bounty"`
+		CategoryID      int          `json:"categoryId"`
+		CategoryName    string       `json:"categoryName"`
+		Artists         [][]ArtistID `json:"artists"`
+		Title           string       `json:"title"`
+		Year            int          `json:"year"`
+		Image           string       `json:"image"`
+		Description     string       `json:"description"`
+		CatalogueNumber string       `json:"catalogueNumber"`
+		ReleaseType     string       `json:"releaseType"`
+		BitrateList     string       `json:"bitrateList"`
+		FormatList      string       `json:"formatList"`
+		MediaList       string       `json:"mediaList"`
+		LogCue          string       `json:"logCue"`
+		IsFilled        bool         `json:"isFilled"`
+		FillerID        int          `json:"fillerId"`
+		FillerName      string       `json:"fillerName"`
+		TorrentID       int          `json:"torrentId"`
+		TimeFilled      string       `json:"timeFilled"`
 	} `json:"results"`
 }
 
 type SearchTorrentStruct struct {
-	TorrentID int `json:"torrentId"`
-	EditionID int `json:"editionId"`
-	Artists   []struct {
-		ID      int    `json:"id"`
-		Name    string `json:"name"`
-		AliasID int    `json:"aliasid"`
-	} `json:"artists"`
-	RemasteredF              bool   `json:"remastered"`
-	RemasterYearF            int    `json:"remasterYear"`
-	RemasterCatalogueNumberF string `json:"remasterCatalogueNumber"`
-	RemasterTitleF           string `json:"remasterTitle"`
-	MediaF                   string `json:"media"`
-	EncodingF                string `json:"encoding"`
-	FormatF                  string `json:"format"`
-	HasLogF                  bool   `json:"hasLog"`
-	LogScore                 int    `json:"logScore"`
-	HasCue                   bool   `json:"hasCue"`
-	SceneF                   bool   `json:"scene"`
-	VanityHouse              bool   `json:"vanityHouse"`
-	FileCountF               int    `json:"fileCount"`
-	Time                     string `json:"time"`
-	Size                     int64  `json:"size"`
-	Snatches                 int    `json:"snatches"`
-	Seeders                  int    `json:"seeders"`
-	Leechers                 int    `json:"leechers"`
-	IsFreeleech              bool   `json:"isFreeleech"`
-	IsNeutralLeech           bool   `json:"isNeutralLeech"`
-	IsPersonalFreeleech      bool   `json:"isPersonalFreeleech"`
-	CanUseToken              bool   `json:"canUseToken"`
+	TorrentID                int           `json:"torrentId"`
+	EditionID                int           `json:"editionId"`
+	Artists                  []ArtistAlias `json:"artists"`
+	RemasteredF              bool          `json:"remastered"`
+	RemasterYearF            int           `json:"remasterYear"`
+	RemasterCatalogueNumberF string        `json:"remasterCatalogueNumber"`
+	RemasterTitleF           string        `json:"remasterTitle"`
+	MediaF                   string        `json:"media"`
+	EncodingF                string        `json:"encoding"`
+	FormatF                  string        `json:"format"`
+	HasLogF                  bool          `json:"hasLog"`
+	LogScore                 int           `json:"logScore"`
+	HasCue                   bool          `json:"hasCue"`
+	SceneF                   bool          `json:"scene"`
+	VanityHouse              bool          `json:"vanityHouse"`
+	FileCountF               int           `json:"fileCount"`
+	Time                     string        `json:"time"`
+	Size                     int64         `json:"size"`
+	Snatches                 int           `json:"snatches"`
+	Seeders                  int           `json:"seeders"`
+	Leechers                 int           `json:"leechers"`
+	IsFreeleech              bool          `json:"isFreeleech"`
+	IsNeutralLeech           bool          `json:"isNeutralLeech"`
+	IsPersonalFreeleech      bool          `json:"isPersonalFreeleech"`
+	CanUseToken              bool          `json:"canUseToken"`
 }
 
 func (ts SearchTorrentStruct) ID() int {
