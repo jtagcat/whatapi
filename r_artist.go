@@ -28,6 +28,7 @@ type ArtistGroupStruct struct {
 	GroupNameF            string                `json:"groupName"`
 	ArtistsF              []ArtistAlias         `json:"artists"`
 	ExtendedArtists       ExtendedArtistMap     `json:"extendedArtists"`
+	WikiImage             string                `json:"wikiImage"`
 	artists               []string
 	importance            []int
 }
