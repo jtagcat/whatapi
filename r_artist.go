@@ -19,6 +19,7 @@ type ArtistGroupStruct struct {
 	GroupYearF            int                   `json:"groupYear"`
 	GroupRecordLabelF     string                `json:"groupRecordLabel"`
 	GroupCatalogueNumberF string                `json:"groupCatalogueNumber"`
+	GroupCategoryID       int                   `json:"groupCategoryID"`
 	TagsF                 []string              `json:"tags"`
 	ReleaseTypeF          int                   `json:"releaseType"`
 	GroupVanityHouse      bool                  `json:"groupVanityHouse"`
