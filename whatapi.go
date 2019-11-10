@@ -56,16 +56,15 @@ func NewWhatAPICached(url, agent string, db *sql.DB, cacheFor time.Duration) (Wh
 	}
 	_, err = db.Exec(`
 CREATE TABLE IF NOT EXISTS urlcache (
-    requesturl TEXT UNIQUE PRIMARY KEY NOT NULL,
+    requesturl TEXT PRIMARY KEY NOT NULL,
     body       TEXT NOT NULL,
     timestamp  DATETIME NOT NULL
-);
+) WITHOUT ROWID;
 
 CREATE TABLE IF NOT EXISTS cookies (
-    url    TEXT NOT NULL,
-    cookie TEXT NOT NULL,
-    CREATE INDEX cookies_url ON (url)
-);
+    url    TEXT PRIMARY KEY NOT NULL,
+    cookie TEXT NOT NULL
+) WITHOUT ROWID;
 `)
 	if err != nil {
 		return nil, err
@@ -420,15 +419,17 @@ func (w *WhatAPIStruct) Login(username, password string) error {
 		var c []byte
 		err := w.db.QueryRow(`SELECT cookie FROM cookies WHERE url=?`,
 			w.baseURL).Scan(&c)
-		if err != nil {
+		if err != nil && err != sql.ErrNoRows {
 			return err
 		}
-		var cs []*http.Cookie
-		err = json.Unmarshal(c, &cs)
-		if err != nil {
-			return err
-		}
-		w.client.Jar.SetCookies(req.URL, cs)
+		if err == nil {
+			var cs []*http.Cookie
+			err = json.Unmarshal(c, &cs)
+			if err != nil {
+				return err
+			}
+			w.client.Jar.SetCookies(req.URL, cs)
+		} // otherwise it was "no rows"
 	}
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 	req.Header.Set("User-Agent", w.userAgent)
@@ -448,7 +449,7 @@ func (w *WhatAPIStruct) Login(username, password string) error {
 		if err != nil {
 			return err
 		}
-		_, err = w.db.Exec(`INSERT INTO cookies VALUES(?,?)`,
+		_, err = w.db.Exec(`REPLACE INTO cookies VALUES(?,?)`,
 			w.baseURL, c)
 		if err != nil {
 			return err
