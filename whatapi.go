@@ -13,11 +13,27 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"golang.org/x/net/publicsuffix"
 )
+
+type PSList struct{}
+
+func (p PSList) PublicSuffix(d string) string {
+	s, err := publicsuffix.EffectiveTLDPlusOne(d)
+	if err != nil {
+		return d
+	}
+	return s
+}
+
+func (p PSList) String() string {
+	return "whatapi PSList v1.0"
+}
 
 //NewWhatAPI creates a new client for the What.CD API using the provided URL.
 func NewWhatAPI(url, agent string) (WhatAPI, error) {
-	cookieJar, err := cookiejar.New(nil)
+	cookieJar, err := cookiejar.New(&cookiejar.Options{PSList{}})
 	if err != nil {
 		return nil, err
 	}
@@ -34,7 +50,7 @@ func NewWhatAPI(url, agent string) (WhatAPI, error) {
 // provided URL. It is backed by a SQL db cache and will return
 // cached entries if any.
 func NewWhatAPICached(url, agent string, db *sql.DB, cacheFor time.Duration) (WhatAPI, error) {
-	cookieJar, err := cookiejar.New(nil)
+	cookieJar, err := cookiejar.New(&cookiejar.Options{PSList{}})
 	if err != nil {
 		return nil, err
 	}
@@ -43,6 +59,12 @@ CREATE TABLE IF NOT EXISTS urlcache (
     requesturl TEXT UNIQUE PRIMARY KEY NOT NULL,
     body       TEXT NOT NULL,
     timestamp  DATETIME NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS cookies (
+    url    TEXT NOT NULL,
+    cookie TEXT NOT NULL,
+    CREATE INDEX cookies_url ON (url)
 );
 `)
 	if err != nil {
@@ -394,6 +416,20 @@ func (w *WhatAPIStruct) Login(username, password string) error {
 
 	reqBody := strings.NewReader(params.Encode())
 	req, err := http.NewRequest("POST", w.baseURL+"login.php", reqBody)
+	if w.db != nil {
+		var c []byte
+		err := w.db.QueryRow(`SELECT cookie FROM cookies WHERE url=?`,
+			w.baseURL).Scan(&c)
+		if err != nil {
+			return err
+		}
+		var cs []*http.Cookie
+		err = json.Unmarshal(c, &cs)
+		if err != nil {
+			return err
+		}
+		w.client.Jar.SetCookies(req.URL, cs)
+	}
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 	req.Header.Set("User-Agent", w.userAgent)
 	resp, err := w.client.Do(req)
@@ -406,6 +442,19 @@ func (w *WhatAPIStruct) Login(username, password string) error {
 		return errLoginFailed
 	}
 	w.loggedIn = true
+	if w.db != nil {
+		// remember cookies
+		c, err := json.Marshal(resp.Request.Cookies())
+		if err != nil {
+			return err
+		}
+		_, err = w.db.Exec(`INSERT INTO cookies VALUES(?,?)`,
+			w.baseURL, c)
+		if err != nil {
+			return err
+
+		}
+	}
 	// don't cache login results
 	db := w.db
 	w.db = nil

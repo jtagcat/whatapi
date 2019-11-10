@@ -2,4 +2,4 @@ module github.com/charles-haynes/whatapi
 
 go 1.12
 
-require github.com/charles-haynes/gazelle v0.0.8 // indirect
+require golang.org/x/net v0.0.0-20191109021931-daa7c04131f5
