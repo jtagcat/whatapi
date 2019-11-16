@@ -1,5 +1,7 @@
 package whatapi
 
+import "html"
+
 type TopTenTags []struct {
 	Caption string `json:"caption"`
 	Tag     string `json:"tag"`
@@ -13,31 +15,35 @@ type TopTenTags []struct {
 }
 
 type TopTenResult struct {
-	TorrentID     int      `json:"torrentId"`
-	GroupID       int      `json:"groupId"`
-	Artist        string   `json:"artist"`
-	GroupName     string   `json:"groupName"`
-	GroupCategory int      `json:"groupCategory"`
-	GroupYear     int      `json:"groupYear"`
-	RemasterTitle string   `json:"remasterTitle"`
-	Format        string   `json:"format"`
-	Encoding      string   `json:"encoding"`
-	HasLog        bool     `json:"hasLog"`
-	HasCue        bool     `json:"hasCue"`
-	HasLogDB      bool     `json:"hasLogDB"`
-	LogScore      string   `json:"logScore"`
-	LogChecksum   string   `json:"logChecksum"`
-	Media         string   `json:"media"`
-	Scene         bool     `json:"scene"`
-	Year          int      `json:"year"`
-	Tags          []string `json:"tags"`
-	Snatched      int      `json:"snatched"`
-	Seeders       int      `json:"seeders"`
-	Leechers      int      `json:"leechers"`
-	Data          int64    `json:"data"`
-	Size          int64    `json:"size"`
-	WikiImage     string   `json:"wikiImage"`
-	ReleaseType   string   `json:"releaseType"`
+	TorrentID      int      `json:"torrentId"`
+	GroupID        int      `json:"groupId"`
+	Artist         string   `json:"artist"`
+	GroupName      string   `json:"groupName"`
+	GroupCategory  int      `json:"groupCategory"`
+	GroupYear      int      `json:"groupYear"`
+	RemasterTitleF string   `json:"remasterTitle"`
+	Format         string   `json:"format"`
+	Encoding       string   `json:"encoding"`
+	HasLog         bool     `json:"hasLog"`
+	HasCue         bool     `json:"hasCue"`
+	HasLogDB       bool     `json:"hasLogDB"`
+	LogScore       string   `json:"logScore"`
+	LogChecksum    string   `json:"logChecksum"`
+	Media          string   `json:"media"`
+	Scene          bool     `json:"scene"`
+	Year           int      `json:"year"`
+	Tags           []string `json:"tags"`
+	Snatched       int      `json:"snatched"`
+	Seeders        int      `json:"seeders"`
+	Leechers       int      `json:"leechers"`
+	Data           int64    `json:"data"`
+	Size           int64    `json:"size"`
+	WikiImage      string   `json:"wikiImage"`
+	ReleaseType    string   `json:"releaseType"`
+}
+
+func (r *TopTenResult) RemasterTitle() string {
+	return html.UnescapeString(r.RemasterTitleF)
 }
 
 type TopTenTorrents []struct {
