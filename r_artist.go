@@ -33,47 +33,6 @@ type ArtistGroupStruct struct {
 	importance            []int
 }
 
-type Artist struct {
-	ID                   int    `json:"id"`
-	NameF                string `json:"name"`
-	NotificationsEnabled bool   `json:"notificationsEnabled"`
-	HasBookmarked        bool   `json:"hasBookmarked"`
-	Image                string `json:"image"`
-	Body                 string `json:"body"`
-	VanityHouse          bool   `json:"vanityHouse"`
-	Tags                 []struct {
-		Name  string `json:"name"`
-		Count int    `json:"count"`
-	} `json:"tags"`
-	SimilarArtists []struct {
-		ArtistID  int    `json:"artistId"`
-		Name      string `json:"name"`
-		Score     int    `json:"score"`
-		SimilarID int    `json:"similarId"`
-	} `json:"similarArtists"`
-	Statistics struct {
-		NumGroups   int `json:"numGroups"`
-		NumTorrents int `json:"numTorrents"`
-		NumSeeders  int `json:"numSeeders"`
-		NumLeechers int `json:"numLeechers"`
-		NumSnatches int `json:"numSnatches"`
-	} `json:"statistics"`
-	TorrentGroup []ArtistGroupStruct `json:"torrentgroup"`
-	Requests     []struct {
-		RequestID  int    `json:"requestId"`
-		CategoryID int    `json:"categoryId"`
-		Title      string `json:"title"`
-		Year       int    `json:"year"`
-		TimeAdded  string `json:"timeAdded"`
-		Votes      int    `json:"votes"`
-		Bounty     int64  `json:"bounty"`
-	} `json:"requests"`
-}
-
-func (a Artist) Name() string {
-	return html.UnescapeString(a.NameF)
-}
-
 func (g ArtistGroupStruct) ID() int {
 	return g.GroupID
 }
@@ -164,19 +123,15 @@ func (g ArtistGroupStruct) Importance() []int {
 }
 
 func (g ArtistGroupStruct) RecordLabel() string {
-	return g.GroupRecordLabelF
+	return html.UnescapeString(g.GroupRecordLabelF)
 }
 
 func (g ArtistGroupStruct) CatalogueNumber() string {
-	return g.GroupCatalogueNumberF
+	return html.UnescapeString(g.GroupCatalogueNumberF)
 }
 
 func (g ArtistGroupStruct) ReleaseType() int {
 	return g.ReleaseTypeF
-}
-
-func (g ArtistGroupStruct) GroupName() string {
-	return html.UnescapeString(g.GroupNameF)
 }
 
 func (g ArtistGroupStruct) Tags() []string {
@@ -185,4 +140,45 @@ func (g ArtistGroupStruct) Tags() []string {
 
 func (g ArtistGroupStruct) String() string {
 	return GroupString(g)
+}
+
+type Artist struct {
+	ID                   int    `json:"id"`
+	NameF                string `json:"name"`
+	NotificationsEnabled bool   `json:"notificationsEnabled"`
+	HasBookmarked        bool   `json:"hasBookmarked"`
+	Image                string `json:"image"`
+	Body                 string `json:"body"`
+	VanityHouse          bool   `json:"vanityHouse"`
+	Tags                 []struct {
+		Name  string `json:"name"`
+		Count int    `json:"count"`
+	} `json:"tags"`
+	SimilarArtists []struct {
+		ArtistID  int    `json:"artistId"`
+		Name      string `json:"name"`
+		Score     int    `json:"score"`
+		SimilarID int    `json:"similarId"`
+	} `json:"similarArtists"`
+	Statistics struct {
+		NumGroups   int `json:"numGroups"`
+		NumTorrents int `json:"numTorrents"`
+		NumSeeders  int `json:"numSeeders"`
+		NumLeechers int `json:"numLeechers"`
+		NumSnatches int `json:"numSnatches"`
+	} `json:"statistics"`
+	TorrentGroup []ArtistGroupStruct `json:"torrentgroup"`
+	Requests     []struct {
+		RequestID  int    `json:"requestId"`
+		CategoryID int    `json:"categoryId"`
+		Title      string `json:"title"`
+		Year       int    `json:"year"`
+		TimeAdded  string `json:"timeAdded"`
+		Votes      int    `json:"votes"`
+		Bounty     int64  `json:"bounty"`
+	} `json:"requests"`
+}
+
+func (a Artist) Name() string {
+	return html.UnescapeString(a.NameF)
 }

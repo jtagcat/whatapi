@@ -163,7 +163,7 @@ func (g GroupStruct) RecordLabel() string {
 }
 
 func (g GroupStruct) CatalogueNumber() string {
-	return g.CatalogueNumberF
+	return html.UnescapeString(g.CatalogueNumberF)
 }
 
 func (g GroupStruct) ReleaseType() int {

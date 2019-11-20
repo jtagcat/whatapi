@@ -18,7 +18,7 @@ type TopTenResult struct {
 	TorrentID      int      `json:"torrentId"`
 	GroupID        int      `json:"groupId"`
 	Artist         string   `json:"artist"`
-	GroupName      string   `json:"groupName"`
+	GroupNameF     string   `json:"groupName"`
 	GroupCategory  int      `json:"groupCategory"`
 	GroupYear      int      `json:"groupYear"`
 	RemasterTitleF string   `json:"remasterTitle"`
@@ -42,8 +42,12 @@ type TopTenResult struct {
 	ReleaseType    string   `json:"releaseType"`
 }
 
-func (r *TopTenResult) RemasterTitle() string {
+func (r TopTenResult) RemasterTitle() string {
 	return html.UnescapeString(r.RemasterTitleF)
+}
+
+func (r TopTenResult) Name() string {
+	return html.UnescapeString(r.GroupNameF)
 }
 
 type TopTenTorrents []struct {
