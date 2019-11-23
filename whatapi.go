@@ -32,13 +32,17 @@ func (p PSList) String() string {
 }
 
 //NewWhatAPI creates a new client for the What.CD API using the provided URL.
-func NewWhatAPI(url, agent string) (WhatAPI, error) {
-	cookieJar, err := cookiejar.New(&cookiejar.Options{PSList{}})
+func NewWhatAPI(ur, agent string) (WhatAPI, error) {
+	cookieJar, err := cookiejar.New(nil)
+	if err != nil {
+		return nil, err
+	}
+	u, err := url.Parse(ur)
 	if err != nil {
 		return nil, err
 	}
 	return &WhatAPIStruct{
-		baseURL:   url,
+		baseURL:   *u,
 		userAgent: agent,
 		client:    &http.Client{Jar: cookieJar},
 		db:        nil,
@@ -46,15 +50,11 @@ func NewWhatAPI(url, agent string) (WhatAPI, error) {
 	}, nil
 }
 
-// NewWhatAPICached creates a new client for the What.CD API using the
-// provided URL. It is backed by a SQL db cache and will return
-// cached entries if any.
-func NewWhatAPICached(url, agent string, db *sql.DB, cacheFor time.Duration) (WhatAPI, error) {
-	cookieJar, err := cookiejar.New(&cookiejar.Options{PSList{}})
-	if err != nil {
-		return nil, err
-	}
-	_, err = db.Exec(`
+// Cache caches requests and responses from a What.CD API client using
+// the provided sql db as a cache. It returns cached responses newer
+// than the cacheFor duration. It initialises the cache if needed.
+func Cache(whatAPI WhatAPI, db *sql.DB, cacheFor time.Duration) (WhatAPI, error) {
+	_, err := db.Exec(`
 CREATE TABLE IF NOT EXISTS urlcache (
     requesturl TEXT PRIMARY KEY NOT NULL,
     body       TEXT NOT NULL,
@@ -69,13 +69,15 @@ CREATE TABLE IF NOT EXISTS cookies (
 	if err != nil {
 		return nil, err
 	}
-	return &WhatAPIStruct{
-		baseURL:   url,
-		userAgent: agent,
-		client:    &http.Client{Jar: cookieJar},
-		db:        db,
-		cacheFor:  cacheFor,
-	}, nil
+	w, ok := whatAPI.(*WhatAPIStruct)
+	if !ok {
+		return nil,
+			fmt.Errorf("can only wrap WhatAPIStruct at this time")
+	}
+	wCopy := *w
+	wCopy.db = db
+	wCopy.cacheFor = cacheFor
+	return &wCopy, nil
 }
 
 type Group interface {
@@ -226,7 +228,7 @@ type WhatAPI interface {
 	CreateDownloadURL(id int) (string, error)
 	Login(username, password string) error
 	Logout() error
-	GetAccount() (Account, error)
+	GetAccount() error
 	GetMailbox(params url.Values) (Mailbox, error)
 	GetConversation(id int) (Conversation, error)
 	GetNotifications(params url.Values) (Notifications, error)
@@ -253,7 +255,7 @@ type WhatAPI interface {
 
 //WhatAPIStruct represents a client for the What.CD API.
 type WhatAPIStruct struct {
-	baseURL   string
+	baseURL   url.URL
 	userAgent string
 	client    *http.Client
 	authkey   string
@@ -407,30 +409,77 @@ func (w *WhatAPIStruct) CreateDownloadURL(id int) (string, error) {
 	return downloadURL, nil
 }
 
+func (w *WhatAPIStruct) getCookies() error {
+	if w.db == nil {
+		return nil
+	}
+	var (
+		c  []byte
+		cs []*http.Cookie
+	)
+	err := w.db.QueryRow(`SELECT cookie FROM cookies WHERE url=?`,
+		w.baseURL.String()).Scan(&c)
+	if err == sql.ErrNoRows {
+		return nil
+	}
+	if err != nil {
+		return err
+	}
+	err = json.Unmarshal(c, &cs)
+	if err == nil {
+		w.client.Jar.SetCookies(&w.baseURL, cs)
+	}
+	return err
+}
+
+func (w *WhatAPIStruct) clearCookies() (err error) {
+	w.client.Jar, err = cookiejar.New(nil)
+	if err != nil {
+		return err
+	}
+	return w.saveCookies()
+}
+
+func (w *WhatAPIStruct) saveCookies() error {
+	// remember cookies
+	if w.db == nil {
+		return nil
+	}
+	cs := w.client.Jar.Cookies(&w.baseURL)
+	c, err := json.Marshal(cs)
+	if err != nil {
+		return err
+	}
+	_, err = w.db.Exec(`REPLACE INTO cookies VALUES(?,?)`,
+		w.baseURL.String(), c)
+	return err
+}
+
 //Login logs in to the API using the provided credentials.
 func (w *WhatAPIStruct) Login(username, password string) error {
+	if w.db != nil {
+		err := w.getCookies() // sets cookie jar
+		if err != nil {
+			return err
+		}
+		// can get account without posting a login?
+		err = w.GetAccount()
+		if err == nil {
+			w.loggedIn = true
+			return nil
+		}
+		// nope, clear cookies and log in fresh
+		err = w.clearCookies()
+		if err != nil {
+			return err
+		}
+	}
 	params := url.Values{}
 	params.Set("username", username)
 	params.Set("password", password)
 
 	reqBody := strings.NewReader(params.Encode())
-	req, err := http.NewRequest("POST", w.baseURL+"login.php", reqBody)
-	if w.db != nil {
-		var c []byte
-		err := w.db.QueryRow(`SELECT cookie FROM cookies WHERE url=?`,
-			w.baseURL).Scan(&c)
-		if err != nil && err != sql.ErrNoRows {
-			return err
-		}
-		if err == nil {
-			var cs []*http.Cookie
-			err = json.Unmarshal(c, &cs)
-			if err != nil {
-				return err
-			}
-			w.client.Jar.SetCookies(req.URL, cs)
-		} // otherwise it was "no rows"
-	}
+	req, err := http.NewRequest("POST", w.baseURL.String()+"login.php", reqBody)
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 	req.Header.Set("User-Agent", w.userAgent)
 	resp, err := w.client.Do(req)
@@ -439,33 +488,16 @@ func (w *WhatAPIStruct) Login(username, password string) error {
 	}
 
 	defer resp.Body.Close()
-	if resp.Request.URL.String()[len(w.baseURL):] != "index.php" {
+	if !strings.Contains(resp.Request.URL.String(), "index") {
 		return errLoginFailed
 	}
 	w.loggedIn = true
-	if w.db != nil {
-		// remember cookies
-		c, err := json.Marshal(resp.Request.Cookies())
-		if err != nil {
-			return err
-		}
-		_, err = w.db.Exec(`REPLACE INTO cookies VALUES(?,?)`,
-			w.baseURL, c)
-		if err != nil {
-			return err
-
-		}
-	}
-	// don't cache login results
-	db := w.db
-	w.db = nil
-	account, err := w.GetAccount()
-	w.db = db
+	err = w.GetAccount()
 	if err != nil {
 		return err
 	}
-	w.authkey, w.passkey = account.AuthKey, account.PassKey
-	return nil
+	err = w.saveCookies()
+	return err
 }
 
 //Logout logs out of the API, ending the current session.
@@ -484,17 +516,26 @@ func (w *WhatAPIStruct) Logout() error {
 }
 
 //GetAccount retrieves account information for the current user.
-func (w *WhatAPIStruct) GetAccount() (Account, error) {
+func (w *WhatAPIStruct) GetAccount() error {
 	account := AccountResponse{}
 	requestURL, err := buildURL(w.baseURL, "ajax.php", "index", url.Values{})
 	if err != nil {
-		return account.Response, err
+		return err
 	}
+	// don't cache login results
+	db, loggedIn := w.db, w.loggedIn
+	w.db, w.loggedIn = nil, true
 	err = w.GetJSON(requestURL, &account)
+	w.db, w.loggedIn = db, loggedIn
 	if err != nil {
-		return account.Response, err
+		return err
 	}
-	return account.Response, checkResponseStatus(account.Status, account.Error)
+	err = checkResponseStatus(account.Status, account.Error)
+	if err != nil {
+		return err
+	}
+	w.authkey, w.passkey = account.Response.AuthKey, account.Response.PassKey
+	return nil
 }
 
 //GetMailbox retrieves mailbox information for the current user using the provided parameters.
@@ -832,7 +873,7 @@ func (w *WhatAPIStruct) ParseHTML(s string) (string, error) {
 
 	reqBody := strings.NewReader(params.Encode())
 	req, err := http.NewRequest(
-		"POST", w.baseURL+"upload.php?action=parse_html", reqBody)
+		"POST", w.baseURL.String()+"upload.php?action=parse_html", reqBody)
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 	req.Header.Set("User-Agent", w.userAgent)
 	resp, err := w.client.Do(req)

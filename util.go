@@ -14,11 +14,7 @@ var (
 	debugMode              = false
 )
 
-func buildURL(baseURL, path, action string, params url.Values) (string, error) {
-	u, err := url.Parse(baseURL)
-	if err != nil {
-		return "", err
-	}
+func buildURL(u url.URL, path, action string, params url.Values) (string, error) {
 	u.Path = path
 	query := make(url.Values)
 	if action != "" {
