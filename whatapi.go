@@ -31,8 +31,8 @@ func (p PSList) String() string {
 	return "whatapi PSList v1.0"
 }
 
-//NewWhatAPI creates a new client for the What.CD API using the provided URL.
-func NewWhatAPI(ur, agent string) (WhatAPI, error) {
+//NewClient creates a new client for the What.CD API using the provided URL.
+func NewClient(ur, agent string) (Client, error) {
 	cookieJar, err := cookiejar.New(nil)
 	if err != nil {
 		return nil, err
@@ -41,7 +41,7 @@ func NewWhatAPI(ur, agent string) (WhatAPI, error) {
 	if err != nil {
 		return nil, err
 	}
-	return &WhatAPIStruct{
+	return &ClientStruct{
 		baseURL:   *u,
 		userAgent: agent,
 		client:    &http.Client{Jar: cookieJar},
@@ -53,7 +53,7 @@ func NewWhatAPI(ur, agent string) (WhatAPI, error) {
 // Cache caches requests and responses from a What.CD API client using
 // the provided sql db as a cache. It returns cached responses newer
 // than the cacheFor duration. It initialises the cache if needed.
-func Cache(whatAPI WhatAPI, db *sql.DB, cacheFor time.Duration) (WhatAPI, error) {
+func Cache(whatAPI Client, db *sql.DB, cacheFor time.Duration) (Client, error) {
 	_, err := db.Exec(`
 CREATE TABLE IF NOT EXISTS urlcache (
     requesturl TEXT PRIMARY KEY NOT NULL,
@@ -69,10 +69,10 @@ CREATE TABLE IF NOT EXISTS cookies (
 	if err != nil {
 		return nil, err
 	}
-	w, ok := whatAPI.(*WhatAPIStruct)
+	w, ok := whatAPI.(*ClientStruct)
 	if !ok {
 		return nil,
-			fmt.Errorf("can only wrap WhatAPIStruct at this time")
+			fmt.Errorf("can only wrap ClientStruct at this time")
 	}
 	wCopy := *w
 	wCopy.db = db
@@ -221,11 +221,12 @@ func TorrentString(t Torrent) string {
 	return s
 }
 
-//WhatAPI represents a client for the What.CD API.
-type WhatAPI interface {
+//Client represents a client for the What.CD API.
+type Client interface {
 	GetJSON(requestURL string, responseObj interface{}) error
 	Do(action string, params url.Values, result interface{}) error
 	CreateDownloadURL(id int) (string, error)
+	CreateUploadURL() (url.URL, string, error)
 	Login(username, password string) error
 	Logout() error
 	GetAccount() error
@@ -250,11 +251,10 @@ type WhatAPI interface {
 	GetTopTenTags(params url.Values) (TopTenTags, error)
 	GetTopTenUsers(params url.Values) (TopTenUsers, error)
 	GetSimilarArtists(id, limit int) (SimilarArtists, error)
-	ParseHTML(s string) (string, error)
 }
 
-//WhatAPIStruct represents a client for the What.CD API.
-type WhatAPIStruct struct {
+//ClientStruct represents a client for the What.CD API.
+type ClientStruct struct {
 	baseURL   url.URL
 	userAgent string
 	client    *http.Client
@@ -265,19 +265,22 @@ type WhatAPIStruct struct {
 	cacheFor  time.Duration
 }
 
-func (w *WhatAPIStruct) readThrough(requestURL string) ([]byte, error) {
-	req, err := http.NewRequest("GET", requestURL, nil)
+// Client gets the http client for low level requests
+func (w ClientStruct) Client() *http.Client {
+	return w.client
+}
+
+// doRequest exectutes an http.Request on this server and returns the results
+// or an error if the response was anything except 200
+func (w *ClientStruct) doRequest(req *http.Request) ([]byte, error) {
 	req.Header.Set("User-Agent", w.userAgent)
-	if err != nil {
-		return nil, err
-	}
 	resp, err := w.client.Do(req)
 	if err != nil {
 		return nil, err
 	}
 
 	defer resp.Body.Close()
-	if resp.StatusCode != 200 {
+	if resp.StatusCode != http.StatusOK {
 		return nil, errRequestFailedReason("Status Code " + resp.Status)
 	}
 	body, err := ioutil.ReadAll(resp.Body)
@@ -287,7 +290,7 @@ func (w *WhatAPIStruct) readThrough(requestURL string) ([]byte, error) {
 	return body, nil
 }
 
-func (w *WhatAPIStruct) updateCache(requestURL string, body []byte) error {
+func (w *ClientStruct) updateCache(requestURL string, body []byte) error {
 	if w.db == nil {
 		return nil
 	}
@@ -309,7 +312,7 @@ func (w *WhatAPIStruct) updateCache(requestURL string, body []byte) error {
 	return nil
 }
 
-func (w *WhatAPIStruct) cachedResponse(requestURL string) (body []byte, err error) {
+func (w *ClientStruct) cachedResponse(requestURL string) (body []byte, err error) {
 	if w.db == nil {
 		return nil, nil
 	}
@@ -328,7 +331,7 @@ func (w *WhatAPIStruct) cachedResponse(requestURL string) (body []byte, err erro
 }
 
 //GetJSON sends a HTTP GET request to the API and decodes the JSON response into responseObj.
-func (w *WhatAPIStruct) GetJSON(requestURL string, responseObj interface{}) (err error) {
+func (w *ClientStruct) GetJSON(requestURL string, responseObj interface{}) (err error) {
 	if !w.loggedIn {
 		return errRequestFailedLogin
 	}
@@ -336,7 +339,11 @@ func (w *WhatAPIStruct) GetJSON(requestURL string, responseObj interface{}) (err
 	body, err := w.cachedResponse(requestURL)
 	switch {
 	case w.db == nil || err == sql.ErrNoRows:
-		if body, err = w.readThrough(requestURL); err != nil {
+		req, err := http.NewRequest("GET", requestURL, nil)
+		if err != nil {
+			return err
+		}
+		if body, err = w.doRequest(req); err != nil {
 			return err
 		}
 		if err = w.updateCache(requestURL, body); err != nil {
@@ -383,7 +390,7 @@ type GenericResponse struct {
 	Error  string `json:"error"`
 }
 
-func (w *WhatAPIStruct) Do(action string, params url.Values, result interface{}) error {
+func (w ClientStruct) Do(action string, params url.Values, result interface{}) error {
 	requestURL, err := buildURL(w.baseURL, "ajax.php", action, params)
 	if err != nil {
 		return err
@@ -392,7 +399,7 @@ func (w *WhatAPIStruct) Do(action string, params url.Values, result interface{})
 }
 
 //CreateDownloadURL constructs a download URL using the provided torrent id.
-func (w *WhatAPIStruct) CreateDownloadURL(id int) (string, error) {
+func (w ClientStruct) CreateDownloadURL(id int) (string, error) {
 	if !w.loggedIn {
 		return "", errRequestFailedLogin
 	}
@@ -409,7 +416,20 @@ func (w *WhatAPIStruct) CreateDownloadURL(id int) (string, error) {
 	return downloadURL, nil
 }
 
-func (w *WhatAPIStruct) getCookies() error {
+//CreateUploadURL constructs an upload URL for this tracker, and returns the
+// url and autheky
+func (w ClientStruct) CreateUploadURL() (u url.URL, a string, err error) {
+	if !w.loggedIn {
+		return u, a, errRequestFailedLogin
+	}
+
+	a = w.authkey
+	u = w.baseURL
+	u.Path = "upload.php"
+	return u, a, err
+}
+
+func (w *ClientStruct) getCookies() error {
 	if w.db == nil {
 		return nil
 	}
@@ -432,7 +452,7 @@ func (w *WhatAPIStruct) getCookies() error {
 	return err
 }
 
-func (w *WhatAPIStruct) clearCookies() (err error) {
+func (w *ClientStruct) clearCookies() (err error) {
 	w.client.Jar, err = cookiejar.New(nil)
 	if err != nil {
 		return err
@@ -440,7 +460,7 @@ func (w *WhatAPIStruct) clearCookies() (err error) {
 	return w.saveCookies()
 }
 
-func (w *WhatAPIStruct) saveCookies() error {
+func (w *ClientStruct) saveCookies() error {
 	// remember cookies
 	if w.db == nil {
 		return nil
@@ -456,7 +476,7 @@ func (w *WhatAPIStruct) saveCookies() error {
 }
 
 //Login logs in to the API using the provided credentials.
-func (w *WhatAPIStruct) Login(username, password string) error {
+func (w *ClientStruct) Login(username, password string) error {
 	if w.db != nil {
 		err := w.getCookies() // sets cookie jar
 		if err != nil {
@@ -501,7 +521,7 @@ func (w *WhatAPIStruct) Login(username, password string) error {
 }
 
 //Logout logs out of the API, ending the current session.
-func (w *WhatAPIStruct) Logout() error {
+func (w *ClientStruct) Logout() error {
 	params := url.Values{"auth": {w.authkey}}
 	requestURL, err := buildURL(w.baseURL, "logout.php", "", params)
 	if err != nil {
@@ -516,7 +536,7 @@ func (w *WhatAPIStruct) Logout() error {
 }
 
 //GetAccount retrieves account information for the current user.
-func (w *WhatAPIStruct) GetAccount() error {
+func (w *ClientStruct) GetAccount() error {
 	account := AccountResponse{}
 	requestURL, err := buildURL(w.baseURL, "ajax.php", "index", url.Values{})
 	if err != nil {
@@ -539,7 +559,7 @@ func (w *WhatAPIStruct) GetAccount() error {
 }
 
 //GetMailbox retrieves mailbox information for the current user using the provided parameters.
-func (w *WhatAPIStruct) GetMailbox(params url.Values) (Mailbox, error) {
+func (w *ClientStruct) GetMailbox(params url.Values) (Mailbox, error) {
 	mailbox := MailboxResponse{}
 	requestURL, err := buildURL(w.baseURL, "ajax.php", "inbox", params)
 	if err != nil {
@@ -553,7 +573,7 @@ func (w *WhatAPIStruct) GetMailbox(params url.Values) (Mailbox, error) {
 }
 
 //GetConversation retrieves conversation information for the current user using the provided conversation id and parameters.
-func (w *WhatAPIStruct) GetConversation(id int) (Conversation, error) {
+func (w *ClientStruct) GetConversation(id int) (Conversation, error) {
 	conversation := ConversationResponse{}
 	params := url.Values{}
 	params.Set("type", "viewconv")
@@ -570,7 +590,7 @@ func (w *WhatAPIStruct) GetConversation(id int) (Conversation, error) {
 }
 
 //GetNotifications retrieves notification information using the specifed parameters.
-func (w *WhatAPIStruct) GetNotifications(params url.Values) (Notifications, error) {
+func (w *ClientStruct) GetNotifications(params url.Values) (Notifications, error) {
 	notifications := NotificationsResponse{}
 	requestURL, err := buildURL(w.baseURL, "ajax.php", "notifications", params)
 	if err != nil {
@@ -584,7 +604,7 @@ func (w *WhatAPIStruct) GetNotifications(params url.Values) (Notifications, erro
 }
 
 //GetAnnouncements retrieves announcement information.
-func (w *WhatAPIStruct) GetAnnouncements() (Announcements, error) {
+func (w *ClientStruct) GetAnnouncements() (Announcements, error) {
 	params := url.Values{}
 	announcements := AnnouncementsResponse{}
 	requestURL, err := buildURL(w.baseURL, "ajax.php", "announcements", params)
@@ -599,7 +619,7 @@ func (w *WhatAPIStruct) GetAnnouncements() (Announcements, error) {
 }
 
 //GetSubscriptions retrieves forum subscription information for the current user using the provided parameters.
-func (w *WhatAPIStruct) GetSubscriptions(params url.Values) (Subscriptions, error) {
+func (w *ClientStruct) GetSubscriptions(params url.Values) (Subscriptions, error) {
 	subscriptions := SubscriptionsResponse{}
 	requestURL, err := buildURL(w.baseURL, "ajax.php", "subscriptions", params)
 	if err != nil {
@@ -613,7 +633,7 @@ func (w *WhatAPIStruct) GetSubscriptions(params url.Values) (Subscriptions, erro
 }
 
 //GetCategories retrieves forum category information.
-func (w *WhatAPIStruct) GetCategories() (Categories, error) {
+func (w *ClientStruct) GetCategories() (Categories, error) {
 	categories := CategoriesResponse{}
 	params := url.Values{}
 	params.Set("type", "main")
@@ -629,7 +649,7 @@ func (w *WhatAPIStruct) GetCategories() (Categories, error) {
 }
 
 //GetForum retrieves forum information using the provided forum id and parameters.
-func (w *WhatAPIStruct) GetForum(id int, params url.Values) (Forum, error) {
+func (w *ClientStruct) GetForum(id int, params url.Values) (Forum, error) {
 	forum := ForumResponse{}
 	params.Set("type", "viewforum")
 	params.Set("forumid", strconv.Itoa(id))
@@ -645,7 +665,7 @@ func (w *WhatAPIStruct) GetForum(id int, params url.Values) (Forum, error) {
 }
 
 //GetThread retrieves forum thread information using the provided thread id and parameters.
-func (w *WhatAPIStruct) GetThread(id int, params url.Values) (Thread, error) {
+func (w *ClientStruct) GetThread(id int, params url.Values) (Thread, error) {
 	thread := ThreadResponse{}
 	params.Set("type", "viewthread")
 	params.Set("threadid", strconv.Itoa(id))
@@ -661,7 +681,7 @@ func (w *WhatAPIStruct) GetThread(id int, params url.Values) (Thread, error) {
 }
 
 //GetArtistBookmarks retrieves artist bookmark information for the current user.
-func (w *WhatAPIStruct) GetArtistBookmarks() (ArtistBookmarks, error) {
+func (w *ClientStruct) GetArtistBookmarks() (ArtistBookmarks, error) {
 	artistBookmarks := ArtistBookmarksResponse{}
 	params := url.Values{}
 	params.Set("type", "artists")
@@ -677,7 +697,7 @@ func (w *WhatAPIStruct) GetArtistBookmarks() (ArtistBookmarks, error) {
 }
 
 //GetTorrentBookmarks retrieves torrent bookmark information for the current user.
-func (w *WhatAPIStruct) GetTorrentBookmarks() (TorrentBookmarks, error) {
+func (w *ClientStruct) GetTorrentBookmarks() (TorrentBookmarks, error) {
 	torrentBookmarks := TorrentBookmarksResponse{}
 	params := url.Values{}
 	params.Set("type", "torrents")
@@ -693,7 +713,7 @@ func (w *WhatAPIStruct) GetTorrentBookmarks() (TorrentBookmarks, error) {
 }
 
 //GetArtist retrieves artist information using the provided artist id and parameters.
-func (w *WhatAPIStruct) GetArtist(id int, params url.Values) (Artist, error) {
+func (w *ClientStruct) GetArtist(id int, params url.Values) (Artist, error) {
 	artist := ArtistResponse{}
 	if _, ok := params["artistname"]; !ok || id != 0 {
 		params.Set("id", strconv.Itoa(id))
@@ -710,7 +730,7 @@ func (w *WhatAPIStruct) GetArtist(id int, params url.Values) (Artist, error) {
 }
 
 //GetRequest retrieves request information using the provided request id and parameters.
-func (w *WhatAPIStruct) GetRequest(id int, params url.Values) (Request, error) {
+func (w *ClientStruct) GetRequest(id int, params url.Values) (Request, error) {
 	request := RequestResponse{}
 	params.Set("id", strconv.Itoa(id))
 	requestURL, err := buildURL(w.baseURL, "ajax.php", "request", params)
@@ -725,7 +745,7 @@ func (w *WhatAPIStruct) GetRequest(id int, params url.Values) (Request, error) {
 }
 
 //GetTorrent retrieves torrent information using the provided torrent id and parameters.
-func (w *WhatAPIStruct) GetTorrent(id int, params url.Values) (GetTorrentStruct, error) {
+func (w *ClientStruct) GetTorrent(id int, params url.Values) (GetTorrentStruct, error) {
 	torrent := TorrentResponse{}
 	if _, ok := params["hash"]; !ok || id != 0 {
 		params.Set("id", strconv.Itoa(id))
@@ -742,7 +762,7 @@ func (w *WhatAPIStruct) GetTorrent(id int, params url.Values) (GetTorrentStruct,
 }
 
 //GetTorrentGroup retrieves torrent group information using the provided torrent group id and parameters.
-func (w *WhatAPIStruct) GetTorrentGroup(id int, params url.Values) (TorrentGroup, error) {
+func (w *ClientStruct) GetTorrentGroup(id int, params url.Values) (TorrentGroup, error) {
 	torrentGroup := TorrentGroupResponse{}
 	if _, ok := params["hash"]; !ok || id != 0 {
 		params.Set("id", strconv.Itoa(id))
@@ -759,7 +779,7 @@ func (w *WhatAPIStruct) GetTorrentGroup(id int, params url.Values) (TorrentGroup
 }
 
 //SearchTorrents retrieves torrent search results using the provided search string and parameters.
-func (w *WhatAPIStruct) SearchTorrents(searchStr string, params url.Values) (TorrentSearch, error) {
+func (w *ClientStruct) SearchTorrents(searchStr string, params url.Values) (TorrentSearch, error) {
 	torrentSearch := TorrentSearchResponse{}
 	params.Set("searchstr", searchStr)
 	requestURL, err := buildURL(w.baseURL, "ajax.php", "browse", params)
@@ -774,7 +794,7 @@ func (w *WhatAPIStruct) SearchTorrents(searchStr string, params url.Values) (Tor
 }
 
 //SearchRequests retrieves request search results using the provided search string and parameters.
-func (w *WhatAPIStruct) SearchRequests(searchStr string, params url.Values) (RequestsSearch, error) {
+func (w *ClientStruct) SearchRequests(searchStr string, params url.Values) (RequestsSearch, error) {
 	requestsSearch := RequestsSearchResponse{}
 	params.Set("search", searchStr)
 	requestURL, err := buildURL(w.baseURL, "ajax.php", "requests", params)
@@ -789,7 +809,7 @@ func (w *WhatAPIStruct) SearchRequests(searchStr string, params url.Values) (Req
 }
 
 //SearchUsers retrieves user search results using the provided search string and parameters.
-func (w *WhatAPIStruct) SearchUsers(searchStr string, params url.Values) (UserSearch, error) {
+func (w *ClientStruct) SearchUsers(searchStr string, params url.Values) (UserSearch, error) {
 	userSearch := UserSearchResponse{}
 	params.Set("search", searchStr)
 	requestURL, err := buildURL(w.baseURL, "ajax.php", "usersearch", params)
@@ -804,7 +824,7 @@ func (w *WhatAPIStruct) SearchUsers(searchStr string, params url.Values) (UserSe
 }
 
 //GetTopTenTorrents retrieves "top ten torrents" information using the provided parameters.
-func (w *WhatAPIStruct) GetTopTenTorrents(params url.Values) (TopTenTorrents, error) {
+func (w *ClientStruct) GetTopTenTorrents(params url.Values) (TopTenTorrents, error) {
 	topTenTorrents := TopTenTorrentsResponse{}
 	params.Set("type", "torrents")
 	requestURL, err := buildURL(w.baseURL, "ajax.php", "top10", params)
@@ -819,7 +839,7 @@ func (w *WhatAPIStruct) GetTopTenTorrents(params url.Values) (TopTenTorrents, er
 }
 
 //GetTopTenTags retrieves "top ten tags" information using the provided parameters.
-func (w *WhatAPIStruct) GetTopTenTags(params url.Values) (TopTenTags, error) {
+func (w *ClientStruct) GetTopTenTags(params url.Values) (TopTenTags, error) {
 	topTenTags := TopTenTagsResponse{}
 	params.Set("type", "tags")
 	requestURL, err := buildURL(w.baseURL, "ajax.php", "top10", params)
@@ -834,7 +854,7 @@ func (w *WhatAPIStruct) GetTopTenTags(params url.Values) (TopTenTags, error) {
 }
 
 //GetTopTenUsers retrieves "top tem users" information using the provided parameters.
-func (w *WhatAPIStruct) GetTopTenUsers(params url.Values) (TopTenUsers, error) {
+func (w *ClientStruct) GetTopTenUsers(params url.Values) (TopTenUsers, error) {
 	topTenUsers := TopTenUsersResponse{}
 	params.Set("type", "users")
 	requestURL, err := buildURL(w.baseURL, "ajax.php", "top10", params)
@@ -849,7 +869,7 @@ func (w *WhatAPIStruct) GetTopTenUsers(params url.Values) (TopTenUsers, error) {
 }
 
 //GetSimilarArtists retrieves similar artist information using the provided artist id and limit.
-func (w *WhatAPIStruct) GetSimilarArtists(id, limit int) (SimilarArtists, error) {
+func (w *ClientStruct) GetSimilarArtists(id, limit int) (SimilarArtists, error) {
 	similarArtists := SimilarArtists{}
 	params := url.Values{}
 	params.Set("id", strconv.Itoa(id))
@@ -863,27 +883,4 @@ func (w *WhatAPIStruct) GetSimilarArtists(id, limit int) (SimilarArtists, error)
 		return similarArtists, err
 	}
 	return similarArtists, nil
-}
-
-// ParseHTML takes an HTML formatted string and passes it to the server
-// to be converted into BBCode (only available on some Gazelle servers)
-func (w *WhatAPIStruct) ParseHTML(s string) (string, error) {
-	params := url.Values{}
-	params.Set("html", s)
-
-	reqBody := strings.NewReader(params.Encode())
-	req, err := http.NewRequest(
-		"POST", w.baseURL.String()+"upload.php?action=parse_html", reqBody)
-	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
-	req.Header.Set("User-Agent", w.userAgent)
-	resp, err := w.client.Do(req)
-	if err != nil {
-		return "", err
-	}
-	defer resp.Body.Close()
-	if resp.StatusCode != 200 {
-		return "", errRequestFailedReason("Status Code " + resp.Status)
-	}
-	r, err := ioutil.ReadAll(resp.Body)
-	return string(r), err
 }
