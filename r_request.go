@@ -38,19 +38,19 @@ type Request struct {
 		RemixedBy []string `json:"remixedBy"`
 		Producer  []string `json:"producer"`
 	} `json:"musicInfo"`
-	CatalogueNumber string   `json:"catalogueNumber"`
-	ReleaseType     int      `json:"releaseType"`
-	ReleaseName     string   `json:"releaseName"`
-	BitrateList     []string `json:"bitrateList"`
-	FormatList      []string `json:"formatList"`
-	MediaList       []string `json:"mediaList"`
-	LogCue          string   `json:"logCue"`
-	IsFilled        bool     `json:"isFilled"`
-	FillerID        int      `json:"fillerID"`
-	FillerName      string   `json:"fillerName"`
-	TorrentID       int      `json:"torrentID"`
-	TimeFilled      string   `json:"timeFilled"`
-	Tags            []string `json:"tags"`
+	CatalogueNumber string         `json:"catalogueNumber"`
+	ReleaseType     int            `json:"releaseType"`
+	ReleaseName     string         `json:"releaseName"`
+	BitrateList     []string       `json:"bitrateList"`
+	FormatList      []string       `json:"formatList"`
+	MediaList       []string       `json:"mediaList"`
+	LogCue          string         `json:"logCue"`
+	IsFilled        bool           `json:"isFilled"`
+	FillerID        int            `json:"fillerID"`
+	FillerName      string         `json:"fillerName"`
+	TorrentID       int            `json:"torrentID"`
+	TimeFilled      string         `json:"timeFilled"`
+	Tags            map[int]string `json:"tags"`
 	Comments        []struct {
 		PostID       int    `json:"postId"`
 		AuthorID     int    `json:"authorId"`

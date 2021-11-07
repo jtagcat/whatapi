@@ -29,21 +29,21 @@ type MusicInfo struct {
 }
 
 type GroupStruct struct {
-	WikiBodyF        string    `json:"wikiBody"`
-	WikiImageF       string    `json:"wikiImage"`
-	IDF              int       `json:"id"`
-	NameF            string    `json:"name"`
-	YearF            int       `json:"year"`
-	RecordLabelF     string    `json:"recordLabel"`
-	CatalogueNumberF string    `json:"catalogueNumber"`
-	ReleaseTypeF     int       `json:"releaseType"`
-	CategoryID       int       `json:"categoryId"`
-	CategoryName     string    `json:"categoryName"`
-	Time             string    `json:"time"`
-	VanityHouse      bool      `json:"vanityHouse"`
-	IsBookmarked     bool      `json:"isBookmarked"`
-	MusicInfo        MusicInfo `json:"musicInfo"`
-	TagsF            []string  `json:"tags"`
+	WikiBodyF        string         `json:"wikiBody"`
+	WikiImageF       string         `json:"wikiImage"`
+	IDF              int            `json:"id"`
+	NameF            string         `json:"name"`
+	YearF            int            `json:"year"`
+	RecordLabelF     string         `json:"recordLabel"`
+	CatalogueNumberF string         `json:"catalogueNumber"`
+	ReleaseTypeF     int            `json:"releaseType"`
+	CategoryID       int            `json:"categoryId"`
+	CategoryName     string         `json:"categoryName"`
+	Time             string         `json:"time"`
+	VanityHouse      bool           `json:"vanityHouse"`
+	IsBookmarked     bool           `json:"isBookmarked"`
+	MusicInfo        MusicInfo      `json:"musicInfo"`
+	TagsF            map[int]string `json:"tags"`
 	artists          []string
 	importance       []int
 }
@@ -170,7 +170,7 @@ func (g GroupStruct) ReleaseType() int {
 	return g.ReleaseTypeF
 }
 
-func (g GroupStruct) Tags() []string {
+func (g GroupStruct) Tags() map[int]string {
 	return g.TagsF
 }
 
