@@ -14,7 +14,7 @@ go get "github.com/kdvh/whatapi"
 Example
 -------
 ```Go
-	wcd, err := whatapi.NewWhatAPI("https://what.cd/")
+	wcd, err := whatapi.NewClient("https://what.cd/")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -39,10 +39,12 @@ Example
 	log.Println(conversation.Messages[0].Body)
 
 	torrentSearchParams := url.Values{}
-	torrentSearch, err := wcd.SearchTorrents("Tool", torrentSearchParams)
+	torrentSearchParams.Set("year", "2021") // https://github.com/OPSnet/Gazelle/blob/master/docs/07-API.md#torrent-search
+	torrentSearch, err := wcd.SearchTorrents("foobar", torrentSearchParams)
 	if err != nil {
 		log.Fatal(err)
 	}
+	log.Println(torrentSearch.Results)
 
 	downloadURL, err := wcd.CreateDownloadURL(torrentSearch.Results[0].Torrents[0].TorrentID)
 	if err != nil {
