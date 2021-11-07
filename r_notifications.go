@@ -26,7 +26,7 @@ type Notifications struct {
 		HasLog           bool   `json:"hasLog"`
 		HasCue           bool   `json:"hasCue"`
 		LogScore         int    `json:"logScore"`
-		FreeTorrent      bool   `json:"freeTorrent"`
+		FreeTorrent      string `json:"freeTorrent"`
 		LogInDB          bool   `json:"logInDb"`
 		Unread           bool   `json:"unread"`
 	} `json:"results"`

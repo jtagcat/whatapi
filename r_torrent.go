@@ -343,7 +343,7 @@ type ArtistTorrentStruct struct {
 	HasCue               bool   `json:"hasCue"`
 	LogScore             int    `json:"logScore"`
 	FileCountF           int    `json:"fileCount"`
-	FreeTorrent          bool   `json:"freeTorrent"`
+	FreeTorrent          string `json:"freeTorrent"`
 	Size                 int64  `json:"size"`
 	Leechers             int    `json:"leechers"`
 	Seeders              int    `json:"seeders"`
@@ -423,7 +423,7 @@ type TorrentStruct struct {
 	Seeders                  int    `json:"seeders"`
 	Leechers                 int    `json:"leechers"`
 	Snatched                 int    `json:"snatched"`
-	FreeTorrent              bool   `json:"freeTorrent"`
+	FreeTorrent              string `json:"freeTorrent"`
 	Reported                 bool   `json:"reported"`
 	Time                     string `json:"time"`
 	DescriptionF             string `json:"description"`
