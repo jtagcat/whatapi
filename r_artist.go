@@ -20,7 +20,7 @@ type ArtistGroupStruct struct {
 	GroupRecordLabelF     string                `json:"groupRecordLabel"`
 	GroupCatalogueNumberF string                `json:"groupCatalogueNumber"`
 	GroupCategoryID       string                `json:"groupCategoryID"`
-	TagsF                 []string              `json:"tags"`
+	TagsF                 map[int]string        `json:"tags"`
 	ReleaseTypeF          int                   `json:"releaseType"`
 	GroupVanityHouse      bool                  `json:"groupVanityHouse"`
 	HasBookmarked         bool                  `json:"hasBookmarked"`
@@ -134,7 +134,7 @@ func (g ArtistGroupStruct) ReleaseType() int {
 	return g.ReleaseTypeF
 }
 
-func (g ArtistGroupStruct) Tags() []string {
+func (g ArtistGroupStruct) Tags() map[int]string {
 	return g.TagsF
 }
 

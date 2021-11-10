@@ -86,7 +86,7 @@ type Group interface {
 	Artist() string
 	Year() int
 	ReleaseType() int
-	Tags() []string
+	Tags() map[int]string
 	String() string
 }
 
