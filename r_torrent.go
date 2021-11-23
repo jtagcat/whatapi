@@ -9,8 +9,8 @@ import (
 )
 
 type GetTorrentStruct struct {
-	Group   GroupStruct   `json:"group"`
-	Torrent TorrentStruct `json:"torrent"`
+	Group   GroupStructTagsID `json:"group"`
+	Torrent TorrentStruct     `json:"torrent"`
 }
 
 type MusicInfoStruct struct {
@@ -44,6 +44,26 @@ type GroupStruct struct {
 	IsBookmarked     bool      `json:"isBookmarked"`
 	MusicInfo        MusicInfo `json:"musicInfo"`
 	TagsF            []string  `json:"tags"`
+	artists          []string
+	importance       []int
+}
+
+type GroupStructTagsID struct {
+	WikiBodyF        string         `json:"wikiBody"`
+	WikiImageF       string         `json:"wikiImage"`
+	IDF              int            `json:"id"`
+	NameF            string         `json:"name"`
+	YearF            int            `json:"year"`
+	RecordLabelF     string         `json:"recordLabel"`
+	CatalogueNumberF string         `json:"catalogueNumber"`
+	ReleaseTypeF     int            `json:"releaseType"`
+	CategoryID       int            `json:"categoryId"`
+	CategoryName     string         `json:"categoryName"`
+	Time             string         `json:"time"`
+	VanityHouse      bool           `json:"vanityHouse"`
+	IsBookmarked     bool           `json:"isBookmarked"`
+	MusicInfo        MusicInfo      `json:"musicInfo"`
+	TagsF            map[int]string `json:"tags"`
 	artists          []string
 	importance       []int
 }
