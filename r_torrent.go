@@ -510,15 +510,12 @@ func (t TorrentStruct) FileCount() int {
 func (t TorrentStruct) FileSize() int64 {
 	return t.Size
 }
-func (t *TorrentStruct) Files() ([]FileStruct, error) {
-	if t.files != nil {
-		return t.files, nil
+func (t *TorrentStruct) Files() (files []FileStruct, err error) {
+	files, parse_err := t.parseFileList()
+	if parse_err != nil {
+		return files, parse_err
 	}
-	f, err := t.ParseFileList()
-	if err != nil {
-		return f, err
-	}
-	t.files = f
+	t.files = files
 	return t.files, nil
 }
 
@@ -533,7 +530,7 @@ func (fs FileStruct) Name() string {
 }
 
 // ParseFileList returns a slice of FileStruts for a torrent
-func (t TorrentStruct) ParseFileList() ([]FileStruct, error) {
+func (t TorrentStruct) parseFileList() ([]FileStruct, error) {
 	if t.FileList == "" {
 		return []FileStruct{}, nil
 	}
