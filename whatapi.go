@@ -15,6 +15,8 @@ import (
 	"time"
 
 	"golang.org/x/net/publicsuffix"
+	retrywait "k8s.io/apimachinery/pkg/util/wait"
+	"k8s.io/client-go/util/retry"
 )
 
 type PSList struct{}
@@ -343,9 +345,22 @@ func (w *ClientStruct) GetJSON(requestURL string, responseObj interface{}) (err 
 		if err != nil {
 			return err
 		}
-		if body, err = w.doRequest(req); err != nil {
+
+		err = retry.OnError(retrywait.Backoff{
+			Duration: 11 * time.Second,
+			Steps:    5,
+			Factor:   1.5,
+			Jitter:   0.1,
+		}, func(err error) bool {
+			return err.Error() == "Request failed: Status Code 503 Service Unavailable"
+		}, func() (err error) {
+			body, err = w.doRequest(req)
+			return err
+		})
+		if err != nil {
 			return err
 		}
+
 		if err = w.updateCache(requestURL, body); err != nil {
 			return err
 		}
