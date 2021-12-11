@@ -352,7 +352,9 @@ func (w *ClientStruct) GetJSON(requestURL string, responseObj interface{}) (err 
 			Factor:   1.5,
 			Jitter:   0.1,
 		}, func(err error) bool {
-			return err.Error() == "Request failed: Status Code 503 Service Unavailable"
+			es := err.Error()
+			return es == "Request failed: Status Code 503 Service Unavailable" ||
+				es == "Request failed: Rate limit exceeded"
 		}, func() (err error) {
 			body, err = w.doRequest(req)
 			return err
