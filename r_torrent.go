@@ -9,8 +9,8 @@ import (
 )
 
 type GetTorrentStruct struct {
-	Group   GroupStructTagsID `json:"group"`
-	Torrent TorrentStruct     `json:"torrent"`
+	Group   GroupStruct   `json:"group"`
+	Torrent TorrentStruct `json:"torrent"`
 }
 
 type MusicInfoStruct struct {
