@@ -353,10 +353,21 @@ func (w *ClientStruct) GetJSON(requestURL string, responseObj interface{}) (err 
 			Jitter:   0.1,
 		}, func(err error) bool {
 			es := err.Error()
-			return es == "Request failed: Status Code 503 Service Unavailable" ||
-				es == "Request failed: Rate limit exceeded"
+			return es == "Request failed: Status Code 503 Service Unavailable" || // err from html
+				es == "Request failed: Rate limit exceeded" // err from json
 		}, func() (err error) {
-			body, err = w.doRequest(req)
+			if body, err = w.doRequest(req); err != nil {
+				return err // err from http
+			}
+
+			var st GenericResponse
+			if err := json.Unmarshal(body, &st); err != nil {
+				return err
+			}
+			if err := checkResponseStatus(st.Status, st.Error); err != nil {
+				return err // err from json
+			}
+
 			return err
 		})
 		if err != nil {
@@ -372,14 +383,6 @@ func (w *ClientStruct) GetJSON(requestURL string, responseObj interface{}) (err 
 		break
 	}
 
-	var st GenericResponse
-	if err := json.Unmarshal(body, &st); err != nil {
-		return err
-	}
-
-	if err := checkResponseStatus(st.Status, st.Error); err != nil {
-		return err
-	}
 	switch ro := responseObj.(type) {
 	case *ArtistResponse: // hack around orpheus bug in get artist
 		err := json.Unmarshal(body, ro)
