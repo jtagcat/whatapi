@@ -347,9 +347,9 @@ func (w *ClientStruct) GetJSON(requestURL string, responseObj interface{}) (err 
 		}
 
 		err = retry.OnError(retrywait.Backoff{
-			Duration: 11 * time.Second,
-			Steps:    5,
-			Factor:   1.5,
+			Duration: 15 * time.Second,
+			Steps:    4,
+			Factor:   3,
 			Jitter:   0.1,
 		}, func(err error) bool {
 			es := err.Error()
